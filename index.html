@@ -414,10 +414,11 @@ nav{
 .stbl thead tr{background:var(--bg3);border-bottom:1px solid var(--brd2);}
 .stbl th{
   font-family:'Inter',sans-serif;
-  font-size:var(--text-xs);letter-spacing:var(--ls-wider);color:var(--txt3);
-  padding:10px 5px;text-align:center;font-weight:600;text-transform:uppercase;
+  font-size:var(--text-xs);letter-spacing:var(--ls-wider);color:var(--txt);
+  padding:10px 5px;text-align:center;font-weight:800;text-transform:uppercase;
+  border-bottom:2px solid rgba(0,212,255,.25);
 }
-.stbl th.name-col{text-align:right;padding-right:14px;}
+.stbl th.name-col{text-align:right;padding-right:14px;color:var(--cyan);}
 .stbl td{padding:11px 5px;text-align:center;font-size:var(--text-sm);font-weight:500;border-bottom:1px solid var(--brd);transition:background .15s;}
 .stbl td.name-col{font-family:'Heebo',sans-serif;text-align:right;padding-right:14px;font-weight:800;font-size:var(--text-base);letter-spacing:var(--ls-snug);}
 .stbl tr:last-child td{border-bottom:none;}
@@ -486,7 +487,7 @@ nav{
 }
 .cup-match-bar.gold{background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.12);}
 .cup-mdate{font-family:'Inter',sans-serif;font-size:var(--text-sm);font-weight:700;color:var(--cyan);}
-.cup-mdate.gold{color:var(--amber);font-weight:700;}
+.cup-mdate.gold{color:var(--cyan);font-weight:700;}
 .cup-teams-row{display:grid;grid-template-columns:1fr 68px 1fr;align-items:stretch;min-height:56px;}
 .cup-tcell{font-family:'Heebo',sans-serif;display:flex;align-items:center;padding:12px 14px;font-weight:800;font-size:var(--text-base);letter-spacing:var(--ls-snug);}
 .cup-tcell.home{justify-content:flex-end;text-align:right;}
@@ -596,10 +597,190 @@ nav{
 .login-err{font-size:.72rem;color:#f87171;margin-top:7px;min-height:18px;}
 .modal-close{margin-top:12px;font-size:.72rem;color:var(--muted);cursor:pointer;text-decoration:underline;}
 
-@media(max-width:480px){
-  .hero-title{letter-spacing:4px;}
-  .tab-lbl{font-size:.52rem;}
+/* ── SCORER INPUT in match row ── */
+.scorer-btn{
+  font-family:'Heebo',sans-serif;
+  font-size:.82rem;font-weight:700;color:var(--cyan);
+  cursor:pointer;background:rgba(0,212,255,.07);
+  border:1px solid rgba(0,212,255,.2);
+  border-radius:7px;padding:7px 18px;
+  width:100%;transition:all .2s;
 }
+.scorer-btn:hover{background:rgba(0,212,255,.14);border-color:rgba(0,212,255,.4);}
+.scorer-panel{
+  display:none;background:var(--bg3);
+  border-top:1px solid var(--brd);
+  padding:10px 14px;
+}
+.scorer-panel.open{display:block;animation:fadeUp .2s ease;}
+.scorer-title{font-size:.68rem;font-weight:700;color:var(--cyan);margin-bottom:8px;font-family:'Inter',sans-serif;letter-spacing:.05em;}
+.scorer-team{margin-bottom:10px;}
+.scorer-team-name{font-size:.65rem;color:var(--amber);font-weight:700;margin-bottom:6px;font-family:'Heebo',sans-serif;}
+.scorer-player-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;border-bottom:1px solid var(--brd);
+  gap:8px;
+}
+.scorer-player-row:last-child{border-bottom:none;}
+.scorer-pname{font-size:.78rem;font-weight:600;font-family:'Heebo',sans-serif;flex:1;}
+.scorer-pname.captain::after{content:' ©';color:var(--amber);font-size:.6rem;}
+.scorer-goals{display:flex;align-items:center;gap:4px;}
+.scorer-goals label{font-size:.6rem;color:var(--muted);}
+.scorer-num{
+  width:36px;padding:3px;text-align:center;
+  background:rgba(255,255,255,.05);border:1px solid var(--brd2);
+  border-radius:5px;color:var(--txt);
+  font-family:'Inter',sans-serif;font-size:.78rem;font-weight:700;
+}
+.scorer-num:focus{outline:none;border-color:var(--cyan);}
+.card-btns{display:flex;gap:3px;}
+.card-btn{
+  padding:2px 6px;border:1px solid var(--brd2);border-radius:4px;
+  background:none;cursor:pointer;font-size:.7rem;transition:all .15s;
+}
+.card-btn.yellow{border-color:rgba(255,176,32,.4);}
+.card-btn.yellow.on{background:var(--amber);color:#000;}
+.card-btn.red{border-color:rgba(255,61,87,.4);}
+.card-btn.red.on{background:var(--red);color:#fff;}
+.mvp-btn{
+  padding:4px 10px;border:1px solid var(--brd2);border-radius:5px;
+  background:none;cursor:pointer;font-size:.7rem;font-weight:700;color:var(--muted);
+  font-family:'Heebo',sans-serif;transition:all .15s;white-space:nowrap;
+}
+.mvp-btn.on{background:rgba(255,215,0,.15);border-color:var(--gold);color:var(--gold);}
+.scorer-save-row{margin-top:10px;display:flex;gap:8px;}
+
+/* ── TEAMS PAGE ── */
+.team-tabs{
+  display:flex;gap:6px;padding:0 16px 14px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.team-tabs::-webkit-scrollbar{display:none;}
+.team-pill{
+  flex-shrink:0;padding:7px 14px;
+  border:1px solid var(--brd2);border-radius:8px;
+  background:var(--srf);color:var(--muted);
+  font-family:'Heebo',sans-serif;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.team-pill.active{background:rgba(0,212,255,.1);border-color:var(--cyan);color:var(--cyan);}
+.team-card{margin:0 16px 14px;background:var(--srf);border:1px solid var(--brd);border-radius:10px;overflow:hidden;}
+.team-card-head{
+  padding:12px 16px;
+  background:var(--bg3);border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.team-card-name{font-family:'Heebo',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:-.02em;}
+.team-card-captain{font-size:.7rem;color:var(--amber);font-weight:700;}
+.players-table{width:100%;border-collapse:collapse;}
+.players-table th{
+  font-family:'Heebo',sans-serif;font-size:.85rem;font-weight:800;
+  letter-spacing:.02em;color:var(--txt);
+  padding:11px 10px;background:rgba(0,212,255,.08);
+  border-bottom:2px solid rgba(0,212,255,.3);text-align:center;
+}
+.players-table th:first-child{text-align:right;}
+.players-table td{
+  padding:9px 10px;text-align:center;
+  font-size:.8rem;border-bottom:1px solid var(--brd);
+  transition:background .15s;
+}
+.players-table td:first-child{text-align:right;font-family:'Heebo',sans-serif;font-weight:700;font-size:.85rem;}
+.players-table tr:last-child td{border-bottom:none;}
+.players-table tr:hover td{background:rgba(255,255,255,.02);}
+.role-badge{
+  display:inline-block;font-size:.52rem;font-weight:700;
+  padding:1px 5px;border-radius:3px;margin-right:4px;
+  font-family:'Inter',sans-serif;letter-spacing:.05em;
+}
+.role-c{background:rgba(255,176,32,.15);color:var(--amber);border:1px solid rgba(255,176,32,.3);}
+.role-m{background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.3);}
+.stat-goals{color:var(--green);font-weight:800;font-family:'Inter',sans-serif;}
+.stat-mvp{color:var(--gold);}
+.stat-yc{color:var(--amber);}
+.stat-rc{color:var(--red);}
+/* ── TOP SCORERS STRIP ── */
+.top-scorer-strip{
+  margin:0 16px 14px;
+  background:var(--srf);
+  border:1px solid rgba(0,230,118,.15);border-radius:10px;
+  overflow:hidden;
+}
+.top-scorer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px 8px;
+  border-bottom:1px solid var(--brd);
+}
+.top-scorer-title{
+  font-family:'Heebo',sans-serif;
+  font-size:1.1rem;font-weight:900;
+  letter-spacing:-.02em;color:var(--green);
+}
+.top3-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--brd);
+}
+.top3-cell{
+  background:var(--srf);
+  padding:14px 10px;text-align:center;
+  position:relative;
+}
+.top3-rank{
+  font-family:'Inter',sans-serif;font-size:.55rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:4px;
+}
+.top3-rank.r1{color:var(--gold);}
+.top3-rank.r2{color:#94a3b8;}
+.top3-rank.r3{color:#cd7c3c;}
+.top3-goals{
+  font-family:'Inter',sans-serif;font-size:2rem;font-weight:900;
+  color:var(--green);line-height:1;
+  filter:drop-shadow(0 0 8px rgba(0,230,118,.4));
+}
+.top3-name{font-family:'Heebo',sans-serif;font-weight:800;font-size:.82rem;margin-top:4px;}
+.top3-team{font-size:.6rem;color:var(--muted);margin-top:2px;}
+.scorer-expand-btn{
+  width:100%;padding:9px;
+  background:none;border:none;border-top:1px solid var(--brd);
+  font-family:'Heebo',sans-serif;font-size:.78rem;font-weight:700;
+  color:var(--cyan);cursor:pointer;transition:background .2s;
+}
+.scorer-expand-btn:hover{background:rgba(0,212,255,.05);}
+.scorers-full-list{display:none;padding:4px 0;}
+.scorers-full-list.open{display:block;}
+.scorer-full-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 16px;border-bottom:1px solid var(--brd);
+}
+.scorer-full-row:last-child{border-bottom:none;}
+.scorer-full-pos{font-family:'Inter',sans-serif;font-size:.7rem;font-weight:700;color:var(--muted);width:24px;}
+.scorer-full-name{font-family:'Heebo',sans-serif;font-weight:700;font-size:.85rem;flex:1;}
+.scorer-full-team{font-size:.65rem;color:var(--muted);margin-left:6px;}
+.scorer-full-g{font-family:'Inter',sans-serif;font-weight:900;font-size:1rem;color:var(--green);}
+
+/* ── MATCH SCORERS DISPLAY ── */
+.match-scorers-row{
+  padding:6px 14px 8px;
+  border-top:1px solid var(--brd);
+  background:rgba(0,212,255,.02);
+  font-size:.72rem;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+}
+.scorer-chip{
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.18);
+  border-radius:5px;padding:2px 8px;
+  font-family:'Heebo',sans-serif;font-size:.72rem;font-weight:700;
+}
+.scorer-chip .g{color:var(--green);font-family:'Inter',sans-serif;font-weight:900;}
+.rc-chip{
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(255,61,87,.08);border:1px solid rgba(255,61,87,.2);
+  border-radius:5px;padding:2px 8px;
+  font-family:'Heebo',sans-serif;font-size:.72rem;
+}
+
 </style>
 </head>
 <body>
@@ -613,6 +794,7 @@ nav{
       <button class="ntab" onclick="goPage('standings')"><span class="tab-icon">📊</span><span class="tab-lbl">טבלה</span></button>
       <button class="ntab" onclick="goPage('byes')"><span class="tab-icon">😴</span><span class="tab-lbl">חופשים</span></button>
       <button class="ntab" onclick="goPage('cup')"><span class="tab-icon">🏆</span><span class="tab-lbl">גביע</span></button>
+      <button class="ntab" onclick="goPage('teams')"><span class="tab-icon">👕</span><span class="tab-lbl">קבוצות</span></button>
     </div>
   </div>
 </nav>
@@ -708,7 +890,7 @@ nav{
     <div class="stat-item"><div class="stat-n">5</div><div class="stat-l">קבוצות</div></div>
     <div class="stat-item"><div class="stat-n">15</div><div class="stat-l">מחזורים</div></div>
     <div class="stat-item"><div class="stat-n">30</div><div class="stat-l">משחקים</div></div>
-    <div class="stat-item"><div class="stat-n">×3</div><div class="stat-l">סיבובים</div></div>
+    <div class="stat-item"><div class="stat-n">3</div><div class="stat-l">סיבובים</div></div>
   </div>
   <div class="hero-ctas">
     <button onclick="goPage('schedule')" class="cta-primary">📅 לוח משחקים</button>
@@ -753,6 +935,18 @@ nav{
     <div><div class="sec-eye">לוח חופשים</div><div class="sec-title">חופשות לפי קבוצה</div></div>
   </div>
   <div class="tbl-scroll"><table class="btbl" id="byeTable"></table></div>
+</div>
+
+<!-- TEAMS -->
+<div class="page" id="page-teams">
+  <div class="sec-hdr" style="margin-top:16px">
+    <div class="sec-dot" style="background:var(--amber)"></div>
+    <div><div class="sec-eye" style="color:var(--amber)">קבוצות</div><div class="sec-title">שחקנים וסטטיסטיקות</div></div>
+  </div>
+  <!-- Team selector -->
+  <div class="team-tabs" id="teamTabs"></div>
+  <!-- Team content -->
+  <div id="teamContent"></div>
 </div>
 
 <!-- CUP -->
@@ -1035,6 +1229,7 @@ function setSync(on){
 }
 
 let isAdmin=false;
+let activeTeam=0;
 function showLogin(){document.getElementById('loginModal').classList.add('show');setTimeout(()=>document.getElementById('pwdInp').focus(),80);}
 function closeLogin(){document.getElementById('loginModal').classList.remove('show');document.getElementById('loginErr').textContent='';document.getElementById('pwdInp').value='';}
 function doLogin(){
@@ -1048,18 +1243,19 @@ function goPage(n){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+n).classList.add('active');
-  ['home','schedule','standings','byes','cup'].forEach((id,i)=>{
+  ['home','schedule','standings','byes','cup','teams'].forEach((id,i)=>{
     if(id===n) document.querySelectorAll('.ntab')[i].classList.add('active');
   });
-  if(n==='cup')renderCup();
+  if(n==='cup') renderCup();
+  if(n==='teams') renderTeams();
 }
 
 function mrowHTML(rn,m,mi){
   const has=m.sh!==null&&m.sa!==null;
   const canEdit=isAdmin&&!m.fixed;
-  let sc;
-  if(has) sc=`<span class="scorebox${canEdit?' editable':''}" ${canEdit?`onclick="openEd(${rn},${mi})"`:''} >${m.sa}:${m.sh}${canEdit?' ✏️':''}</span>`;
-  else sc=canEdit?`<span class="scorebox empty editable" onclick="openEd(${rn},${mi})">✏️</span>`:`<span class="scorebox empty">—</span>`;
+  let sc_html;
+  if(has) sc_html=`<span class="scorebox${canEdit?' editable':''}" ${canEdit?`onclick="openEd(${rn},${mi})"`:''} >${m.sa}:${m.sh}${canEdit?' ✏️':''}</span>`;
+  else sc_html=canEdit?`<span class="scorebox empty editable" onclick="openEd(${rn},${mi})">✏️</span>`:`<span class="scorebox empty">—</span>`;
   const ed=isAdmin?`<div class="score-ed" id="ed_${rn}_${mi}">
     <label style="font-size:.7rem;color:var(--muted)">${T[m.h]}</label>
     <input class="sinp" id="sh_${rn}_${mi}" type="number" min="0" max="30" placeholder="0">
@@ -1070,12 +1266,31 @@ function mrowHTML(rn,m,mi){
     <button class="sbtn cancel" onclick="closeEd(${rn},${mi})">ביטול</button>
     <button class="sbtn del" onclick="delScore(${rn},${mi},${m.h},${m.a})">🗑 מחק</button>
   </div>`:'';
+  const spanel=scorerPanelHTML(rn,m.h,m.a,mi);
+  const matchSc=getScorers(rn,m.h,m.a);
+  const mvp=getMVP(rn,m.h,m.a);
+  const hasSc=Object.keys(matchSc).length>0||mvp;
+  const mvpLine=mvp?`<div style="text-align:center;padding:5px 14px;font-size:.72rem;color:var(--gold);border-top:1px solid var(--brd);background:rgba(255,215,0,.04)">⭐ שחקן מצטיין: ${mvp}</div>`:'';
+  
+  // רשימת כובשים בתצוגה
+  const scorerChips=Object.entries(matchSc)
+    .filter(([,d])=>d.g>0)
+    .map(([pname,d])=>`<span class="scorer-chip"><span class="g">${d.g}×</span>${pname}</span>`)
+    .join('');
+  const rcChips=Object.entries(matchSc)
+    .filter(([,d])=>d.rc)
+    .map(([pname,d])=>`<span class="rc-chip">🟥${d.rc>1?'×'+d.rc:''} ${pname}</span>`)
+    .join('');
+  const matchScorersRow=(scorerChips||rcChips)?
+    `<div class="match-scorers-row">${scorerChips}${rcChips}</div>`:'';
+  
+  const scorerBtnRow=(isAdmin&&has)?`<div style="text-align:center;padding:6px 14px;border-top:1px solid var(--brd)"><button class="scorer-btn" onclick="toggleScorerPanel(${rn},${mi})">⚽ ${hasSc?'ערוך סטטיסטיקות':'הזן סטטיסטיקות'}</button></div>`:'';
   return `<div class="mrow s${m.slot}" id="mrow_${rn}_${mi}">
     <span class="tpill">${m.slot===0?'16:00':'17:00'}</span>
     <span class="t-home">${T[m.h]}</span>
-    ${sc}
+    ${sc_html}
     <span class="t-away">${T[m.a]}</span>
-  </div>${ed}`;
+  </div>${matchScorersRow}${mvpLine}${scorerBtnRow}${ed}${spanel}`;
 }
 
 function openEd(rn,mi){document.querySelectorAll('.score-ed.open').forEach(e=>e.classList.remove('open'));const e=document.getElementById(`ed_${rn}_${mi}`);if(e){e.classList.add('open');e.querySelector('.sinp').focus();}}
@@ -1145,6 +1360,274 @@ function renderAll(){
 }
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800);}
+
+// ══ PLAYERS DATA ══
+const PLAYERS = {
+  0: { // אדיר F-35
+    captain: 'ארקיהון',
+    coach: 'טדלה',
+    players: ['ארקיהון','אמבייה','סיסאיי','מלאק','טדלה','יוני ילאו','תומר','סולומון עזרה']
+  },
+  1: { // ברק F-16
+    captain: 'אמיר',
+    coach: 'יוסי אסראסה',
+    players: ['אמיר','מלקה','גסמה','נתן','רוני','אורי','יוסי אסראסה','דסה','אבי']
+  },
+  2: { // סופה F-16i
+    captain: 'ששון',
+    coach: 'גרמה',
+    players: ['אדינו','אלי .מ','ישראל','יוסי מסרשה','חיים פקדו','קסה','ששון','שי','גרמה']
+  },
+  3: { // בז F-15
+    captain: 'וובטו',
+    coach: 'ארגה',
+    players: ['גבי','אליהו','דני','אושרי','בני','וובטו','מלסה','ארגה']
+  },
+  4: { // לביא
+    captain: 'אלי. ס',
+    coach: 'יוני וורקו',
+    players: ['גרשון','מולו','מולאט','אבי אדנה','בקלה','סולי','אלי. ס','בליינך','יוני וורקו']
+  }
+};
+
+// ══ SCORER HELPERS ══
+function getMatchKey(rn,h,a){return `r${rn}_${h}_${a}`;}
+function getScorers(rn,h,a){return fbScores[`sc_${getMatchKey(rn,h,a)}`]||{};}
+function getMVP(rn,h,a){return fbScores[`mvp_${getMatchKey(rn,h,a)}`]||null;}
+
+function allPlayerStats(){
+  const stats={};
+  // init
+  for(let ti=0;ti<5;ti++){
+    const pd=PLAYERS[ti];
+    [...pd.players].forEach(p=>{
+      stats[p]={goals:0,mvp:0,yc:0,rc:0,team:ti};
+    });
+  }
+  // accumulate
+  rounds.forEach(({rn,matches})=>{
+    matches.forEach(m=>{
+      const sc=getScorers(rn,m.h,m.a);
+      Object.entries(sc).forEach(([pname,data])=>{
+        if(!stats[pname]) return;
+        stats[pname].goals+=(data.g||0);
+        stats[pname].yc+=(data.yc||0);
+        stats[pname].rc+=(data.rc||0);
+      });
+      const mvp=getMVP(rn,m.h,m.a);
+      if(mvp&&stats[mvp]) stats[mvp].mvp++;
+    });
+  });
+  return stats;
+}
+
+function renderTeams(){
+  const stats=allPlayerStats();
+  const tabsEl=document.getElementById('teamTabs');
+  tabsEl.innerHTML=T.map((name,i)=>`
+    <button class="team-pill${i===activeTeam?' active':''}" onclick="setTeam(${i})">${name.replace(' F-35','').replace(' F-16i','').replace(' F-16','').replace(' F-15','')}</button>
+  `).join('');
+
+  const content=document.getElementById('teamContent');
+  content.innerHTML='';
+
+  // Top scorers — top 3 big + expandable
+  const allStats=Object.entries(stats).map(([n,s])=>({name:n,...s}))
+    .filter(s=>s.goals>0).sort((a,b)=>b.goals-a.goals);
+  
+  const strip=document.createElement('div');
+  strip.className='top-scorer-strip';
+  
+  const top3=allStats.slice(0,3);
+  const rest=allStats.slice(3);
+  const rankCls=['r1','r2','r3'];
+  const rankLabel=['🥇 ראשון','🥈 שני','🥉 שלישי'];
+  
+  const top3HTML=top3.length?`
+    <div class="top3-grid">
+      ${top3.map((s,i)=>`
+        <div class="top3-cell">
+          <div class="top3-rank ${rankCls[i]}">${rankLabel[i]}</div>
+          <div class="top3-goals">${s.goals}</div>
+          <div class="top3-name">${s.name}</div>
+          <div class="top3-team">${T[s.team]}</div>
+        </div>`).join('')}
+    </div>`:'<div style="padding:16px;text-align:center;font-size:.75rem;color:var(--muted)">אין גולים עדיין</div>';
+  
+  const restHTML=rest.length?`
+    <button class="scorer-expand-btn" onclick="toggleScorers(this)">
+      ראה עוד ${rest.length} כובשים ▼
+    </button>
+    <div class="scorers-full-list">
+      ${rest.map((s,i)=>`
+        <div class="scorer-full-row">
+          <span class="scorer-full-pos">${i+4}</span>
+          <span class="scorer-full-name">${s.name}<span class="scorer-full-team">· ${T[s.team]}</span></span>
+          <span class="scorer-full-g">${s.goals}</span>
+        </div>`).join('')}
+    </div>`:'';
+  
+  strip.innerHTML=`
+    <div class="top-scorer-head">
+      <span class="top-scorer-title">⚽ מלך השערים</span>
+    </div>
+    ${top3HTML}
+    ${restHTML}`;
+  content.appendChild(strip);
+
+  const ti=activeTeam;
+  const pd=PLAYERS[ti];
+  const card=document.createElement('div');
+  card.className='team-card';
+
+  let rows=pd.players.map(pname=>{
+    const s=stats[pname]||{goals:0,mvp:0,rc:0};
+    const isCap=pname===pd.captain;
+    const isCoach=pname===pd.coach;
+    return `<tr>
+      <td>
+        ${isCap?'<span class="role-badge role-c">© קפטן</span>':''}
+        ${isCoach?'<span class="role-badge role-m">מאמן</span>':''}
+        ${pname}
+      </td>
+      <td class="stat-goals">${s.goals||'—'}</td>
+      <td class="stat-mvp">${s.mvp?'⭐'.repeat(Math.min(s.mvp,5))+(s.mvp>5?` (${s.mvp})`:''):'—'}</td>
+      <td class="stat-rc">${s.rc?`🟥 ${s.rc}`:'—'}</td>
+    </tr>`;
+  }).join('');
+
+  card.innerHTML=`
+    <div class="team-card-head">
+      <span class="team-card-name">${T[ti]}</span>
+      <span class="team-card-captain">© ${pd.captain}${pd.coach?` · M ${pd.coach}`:''}</span>
+    </div>
+    <table class="players-table">
+      <thead><tr>
+        <th>שחקן</th>
+        <th>⚽ גולים</th>
+        <th>⭐ מצטיין</th>
+        <th>🟥 אדום</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  content.appendChild(card);
+}
+
+function setTeam(i){activeTeam=i;renderTeams();}
+
+// ══ SCORER PANEL in match rows ══
+function scorerPanelHTML(rn,h,a,mi){
+  const sc=getScorers(rn,h,a);
+  const mvp=getMVP(rn,h,a);
+  const id=`sp_${rn}_${mi}`;
+  const canEdit=isAdmin;
+
+  const teamRows=[h,a].map(ti=>{
+    const pd=PLAYERS[ti];
+    const prows=pd.players.map(pname=>{
+      const ps=sc[pname]||{};
+      if(!canEdit){
+        // תצוגה בלבד
+        if(!ps.g && !ps.rc && mvp!==pname) return '';
+        return `<div class="scorer-player-row">
+          <span class="scorer-pname">${pname}${pname===pd.captain?' ©':''}</span>
+          <span>${ps.g?`⚽×${ps.g}`:''}</span>
+          <span>${ps.rc?'🟥×'+ps.rc:''}</span>
+          <span>${mvp===pname?'⭐ מצטיין':''}</span>
+        </div>`;
+      }
+      return `<div class="scorer-player-row">
+        <span class="scorer-pname${pname===pd.captain?' captain':''}">${pname}${pname===pd.coach?' 🎽':''}</span>
+        <div class="scorer-goals">
+          <label>⚽</label>
+          <input class="scorer-num" id="sg_${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="15" value="${ps.g||0}">
+        </div>
+        <div class="scorer-goals">
+          <label>🟥</label>
+          <input class="scorer-num" id="src_${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="10" value="${ps.rc||0}" style="border-color:rgba(255,61,87,.3);">
+        </div>
+        <button class="mvp-btn${mvp===pname?' on':''}" onclick="selectMVP('${rn}','${mi}',this)">⭐</button>
+      </div>`;
+    }).filter(Boolean).join('');
+    if(!prows && !canEdit) return '';
+    return `<div class="scorer-team"><div class="scorer-team-name">${T[ti]}</div>${prows||'<div style="font-size:.7rem;color:var(--muted);padding:6px 0">אין נתונים עדיין</div>'}</div>`;
+  }).join('');
+
+  const hasSc=Object.keys(sc).length>0||mvp;
+  // הצג פנל רק אם יש נתונים (צופה) או תמיד (מנהל)
+  if(!canEdit && !hasSc) return '';
+
+  return `<div class="scorer-panel" id="${id}">
+    <div class="scorer-title">${canEdit?'⚽ כובשים · 🟥 אדומים · ⭐ מצטיין':'📊 סטטיסטיקות משחק'}</div>
+    ${teamRows}
+    ${canEdit?`<div class="scorer-save-row">
+      <button class="sbtn save" onclick="saveScorers('${rn}','${mi}','${h}','${a}')">💾 שמור</button>
+      <button class="sbtn cancel" onclick="closeScorerPanel('${id}')">סגור</button>
+    </div>`:''}
+  </div>`;
+}
+
+function toggleScorerPanel(rn,mi){
+  const id=`sp_${rn}_${mi}`;
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('open');
+}
+function closeScorerPanel(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.remove('open');
+}
+
+function toggleScorers(btn){
+  const list=btn.nextElementSibling;
+  list.classList.toggle('open');
+  btn.textContent=list.classList.contains('open')
+    ?'סגור רשימה ▲'
+    :`ראה עוד ${list.children.length} כובשים ▼`;
+}
+
+function selectMVP(rn,mi,btn){
+  const panel=document.getElementById(`sp_${rn}_${mi}`);
+  panel.querySelectorAll('.mvp-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+async function saveScorers(rn,mi,h,a){
+  const panel=document.getElementById(`sp_${rn}_${mi}`);
+  const sc={};
+  const teams=[parseInt(h),parseInt(a)];
+  teams.forEach(ti=>{
+    PLAYERS[ti].players.forEach(pname=>{
+      const key=pname.replace(/[\s.\/]/g,'_');
+      const gEl=document.getElementById(`sg_${rn}_${mi}_${key}`);
+      if(!gEl) return;
+      const g=parseInt(gEl.value)||0;
+      // find this player's row
+      const prows=[...panel.querySelectorAll('.scorer-player-row')];
+      const prow=prows.find(r=>r.querySelector('.scorer-pname')?.textContent.replace('🎽','').trim()===pname);
+      const rcKey=pname.replace(/[\s.\/]/g,'_');
+      const rcEl=document.getElementById(`src_${rn}_${mi}_${rcKey}`);
+      const rc=parseInt(rcEl?.value)||0;
+      if(g||rc) sc[pname]={g,rc};
+    });
+  });
+  // MVP
+  const mvpBtn=panel.querySelector('.mvp-btn.on');
+  let mvpName=null;
+  if(mvpBtn){
+    const prow=mvpBtn.closest('.scorer-player-row');
+    mvpName=prow?.querySelector('.scorer-pname')?.textContent.replace('🎽','').trim()||null;
+  }
+  const mkey=`r${rn}_${h}_${a}`;
+  fbScores[`sc_${mkey}`]=sc;
+  if(mvpName) fbScores[`mvp_${mkey}`]=mvpName;
+  else delete fbScores[`mvp_${mkey}`];
+  localStorage.setItem('ll_sc',JSON.stringify(fbScores));
+  closeScorerPanel(`sp_${rn}_${mi}`);
+  renderAll();
+  showToast('סטטיסטיקות נשמרו ✅');
+  try{await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});}catch(e){}
+}
 
 // ══ HERO CANVAS RENDERER ══
 function drawHero(){
