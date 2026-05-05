@@ -971,7 +971,21 @@ nav{
 <div class="admin-fab" onclick="showLogin()" title="מנהל">⚙️</div>
 <div class="admin-bar" id="adminBar">
   <span class="admin-lbl">מנהל</span>
+  <button class="sbtn save" onclick="showPlayersEditor()" style="font-size:.7rem">👕 שחקנים</button>
   <button class="admin-out" onclick="logout()">יציאה</button>
+</div>
+
+<!-- PLAYERS EDITOR MODAL -->
+<div class="modal-bg" id="playersModal">
+  <div class="modal-box" style="width:360px;max-height:85vh;overflow-y:auto;padding:24px 20px;">
+    <div class="modal-logo" style="font-size:1.2rem;margin-bottom:4px">👕 עריכת שחקנים</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;" id="peTeamTabs"></div>
+    <div id="peContent"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="sbtn save" style="flex:1;padding:9px" onclick="savePlayersEdit()">💾 שמור</button>
+      <button class="sbtn cancel" style="flex:1;padding:9px" onclick="closePlayersEditor()">סגור</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-bg" id="loginModal">
@@ -1192,9 +1206,11 @@ async function initStorage(){
     const res=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
     const data=await res.json();
     fbScores=data.record.scores||{};
+    loadPlayersFromBin();
     applyScores();renderAll();setSync(true);
   }catch(e){
     try{fbScores=JSON.parse(localStorage.getItem('ll_sc')||'{}')}catch(e2){fbScores={};}
+    loadPlayersFromBin();
     applyScores();renderAll();setSync(false);
   }
 }
@@ -1635,6 +1651,114 @@ async function saveScorers(rn,mi,h,a){
   renderAll();
   showToast('סטטיסטיקות נשמרו ✅');
   try{await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});}catch(e){}
+}
+
+// ══ PLAYERS EDITOR ══
+let peTeam = 0;
+
+function showPlayersEditor(){
+  peTeam = 0;
+  document.getElementById('playersModal').classList.add('show');
+  renderPlayersEditor();
+}
+function closePlayersEditor(){
+  document.getElementById('playersModal').classList.remove('show');
+}
+
+function renderPlayersEditor(){
+  // Team tabs
+  const tabs = document.getElementById('peTeamTabs');
+  tabs.innerHTML = T.map((name,i) => `
+    <button class="team-pill${i===peTeam?' active':''}" onclick="setPETeam(${i})" style="font-size:.72rem;padding:5px 10px">
+      ${name.replace(' F-35','').replace(' F-16i','').replace(' F-16','').replace(' F-15','')}
+    </button>`).join('');
+
+  const pd = PLAYERS[peTeam];
+  const content = document.getElementById('peContent');
+
+  // Captain / Coach selects
+  const playerOpts = pd.players.map(p => `<option value="${p}">${p}</option>`).join('');
+  
+  content.innerHTML = `
+    <div style="margin-bottom:10px;">
+      <label style="font-size:.7rem;color:var(--cyan);font-weight:700;display:block;margin-bottom:4px">© קפטן</label>
+      <select id="pe_captain" style="width:100%;padding:7px;background:var(--srf2);border:1px solid var(--brd2);border-radius:6px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:.85rem;">
+        ${pd.players.map(p=>`<option value="${p}"${p===pd.captain?' selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:.7rem;color:var(--amber);font-weight:700;display:block;margin-bottom:4px">🎽 מאמן</label>
+      <select id="pe_coach" style="width:100%;padding:7px;background:var(--srf2);border:1px solid var(--brd2);border-radius:6px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:.85rem;">
+        <option value="">ללא מאמן</option>
+        ${pd.players.map(p=>`<option value="${p}"${p===pd.coach?' selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div style="font-size:.7rem;color:var(--cyan);font-weight:700;margin-bottom:8px;">רשימת שחקנים</div>
+    <div id="pe_players_list">
+      ${pd.players.map((p,i) => `
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+          <input class="pe-pinp" data-idx="${i}" value="${p}"
+            style="flex:1;padding:7px 10px;background:var(--srf2);border:1px solid var(--brd2);border-radius:6px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:.85rem;">
+          <button onclick="removePEPlayer(${i})" style="padding:5px 8px;background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.2);border-radius:5px;color:#f87171;cursor:pointer;font-size:.8rem;">✕</button>
+        </div>`).join('')}
+    </div>
+    <button onclick="addPEPlayer()" style="width:100%;padding:7px;margin-top:4px;background:rgba(0,212,255,.08);border:1px dashed rgba(0,212,255,.3);border-radius:6px;color:var(--cyan);font-family:'Heebo',sans-serif;font-size:.8rem;cursor:pointer;">+ הוסף שחקן</button>
+  `;
+}
+
+function setPETeam(i){ peTeam=i; renderPlayersEditor(); }
+
+function addPEPlayer(){
+  const list = document.getElementById('pe_players_list');
+  const idx = list.querySelectorAll('.pe-pinp').length;
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px;';
+  div.innerHTML = `
+    <input class="pe-pinp" data-idx="${idx}" value=""
+      style="flex:1;padding:7px 10px;background:var(--srf2);border:1px solid rgba(0,212,255,.3);border-radius:6px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:.85rem;" placeholder="שם שחקן">
+    <button onclick="this.parentElement.remove()" style="padding:5px 8px;background:rgba(255,61,87,.1);border:1px solid rgba(255,61,87,.2);border-radius:5px;color:#f87171;cursor:pointer;font-size:.8rem;">✕</button>`;
+  list.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function removePEPlayer(idx){
+  const inputs = document.querySelectorAll('.pe-pinp');
+  if(inputs[idx]) inputs[idx].closest('div').remove();
+}
+
+async function savePlayersEdit(){
+  const players = [...document.querySelectorAll('.pe-pinp')]
+    .map(i=>i.value.trim()).filter(Boolean);
+  if(players.length===0){showToast('חייב לפחות שחקן אחד');return;}
+  
+  const captain = document.getElementById('pe_captain').value;
+  const coach = document.getElementById('pe_coach').value || null;
+  
+  PLAYERS[peTeam].players = players;
+  PLAYERS[peTeam].captain = captain;
+  PLAYERS[peTeam].coach = coach;
+
+  // שמור ב-JSONBin
+  fbScores[`players_${peTeam}`] = {players, captain, coach};
+  localStorage.setItem('ll_sc', JSON.stringify(fbScores));
+  try{
+    await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
+    showToast('שחקנים נשמרו ✅');
+  }catch(e){showToast('נשמר מקומית ✓');}
+  
+  renderPlayersEditor();
+  if(document.getElementById('page-teams').classList.contains('active')) renderTeams();
+}
+
+function loadPlayersFromBin(){
+  for(let ti=0;ti<5;ti++){
+    const saved = fbScores[`players_${ti}`];
+    if(saved && saved.players && saved.players.length>0){
+      PLAYERS[ti].players = saved.players;
+      PLAYERS[ti].captain = saved.captain || PLAYERS[ti].captain;
+      PLAYERS[ti].coach = saved.coach !== undefined ? saved.coach : PLAYERS[ti].coach;
+    }
+  }
 }
 
 // ══ HERO CANVAS RENDERER ══
