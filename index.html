@@ -1791,7 +1791,7 @@ function scorerPanelHTML(rn,h,a,mi){
         </div>`;
       }
       return `<div class="scorer-player-row">
-        <span class="scorer-pname${pname===pd.captain?' captain':''}">${pname}${pname===pd.coach?' 🎽':''}</span>
+        <span class="scorer-pname${pname===pd.captain?' captain':''}" data-name="${pname}">${pname}${pname===pd.coach?' 🎽':''}</span>
         <div class="scorer-goals">
           <label>⚽</label>
           <input class="scorer-num" id="sg_${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="15" value="${ps.g||0}">
@@ -1909,7 +1909,7 @@ async function saveScorers(rn,mi,h,a){
   let mvpName=null;
   if(mvpBtn){
     const prow=mvpBtn.closest('.scorer-player-row');
-    mvpName=prow?.querySelector('.scorer-pname')?.textContent.replace('🎽','').trim()||null;
+    mvpName=prow?.querySelector('.scorer-pname')?.getAttribute('data-name')||prow?.querySelector('.scorer-pname')?.textContent.replace('🎽','').replace('©','').trim()||null;
   }
   const mkey=`r${rn}_${h}_${a}`;
   fbScores[`sc_${mkey}`]=sc;
