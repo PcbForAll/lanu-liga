@@ -1540,7 +1540,19 @@ let REF_SCHEDULE = {...REF_SCHEDULE_DEFAULT};
 
 function getRefs(rn, mi){ 
   const key = `${rn}_${mi}`;
-  return REF_SCHEDULE[key] || REF_SCHEDULE_DEFAULT[key] || null; 
+  const r = REF_SCHEDULE[key] || REF_SCHEDULE_DEFAULT[key];
+  if(!r) return null;
+  // ולידציה — בדוק שאף שופט לא שייך לקבוצות המשחקות
+  const m = rounds[rn-1]?.matches[mi];
+  if(m){
+    const refs = [r.r1, r.r2, r.obs];
+    const valid = refs.every(ref => REF_TEAM[ref] !== m.h && REF_TEAM[ref] !== m.a);
+    if(!valid){
+      // חזור ל-DEFAULT
+      return REF_SCHEDULE_DEFAULT[key] || null;
+    }
+  }
+  return r;
 }
 
 function refRowHTML(rn, mi){
@@ -1611,23 +1623,37 @@ async function saveRefEdit(rn, mi){
 const REF_SCHEDULE_VERSION = 3;
 
 function loadRefsFromBin(){
-  // בדוק גרסה — אם הגרסה ב-bin ישנה, תתעלם מה-refs השמורים
+  // תמיד נקה refs ישנים — השתמש רק ב-DEFAULT
+  // שינויים ידניים של מנהל נשמרים בנפרד עם גרסה
   const binVersion = fbScores['ref_version'] || 0;
   if(binVersion < REF_SCHEDULE_VERSION){
-    // מחק refs ישנים מ-fbScores
+    // גרסה ישנה — נקה הכל ואל תדרוס DEFAULT
     for(let rn=1;rn<=15;rn++){
       for(let mi=0;mi<2;mi++){
         delete fbScores[`ref_${rn}_${mi}`];
       }
     }
-    return; // השתמש ב-DEFAULT
+    // שמור גרסה חדשה ב-bin בשקט
+    fbScores['ref_version'] = REF_SCHEDULE_VERSION;
+    setTimeout(async()=>{
+      try{await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});}catch(e){}
+    }, 2000);
+    return;
   }
-  // גרסה עדכנית — טען שינויים ידניים בלבד
+  // גרסה עדכנית — טען רק שינויים ידניים של מנהל
   for(let rn=1;rn<=15;rn++){
     for(let mi=0;mi<2;mi++){
       const key=`${rn}_${mi}`;
       const saved = fbScores[`ref_${key}`];
-      if(saved) REF_SCHEDULE[key] = saved;
+      if(saved){
+        // ולידציה — וודא שהשופטים לא שייכים לקבוצות
+        const m = rounds[rn-1]?.matches[mi];
+        if(m){
+          const refs = [saved.r1,saved.r2,saved.obs];
+          const valid = refs.every(ref=>REF_TEAM[ref]!==m.h && REF_TEAM[ref]!==m.a);
+          if(valid) REF_SCHEDULE[key] = saved;
+        }
+      }
     }
   }
 }
