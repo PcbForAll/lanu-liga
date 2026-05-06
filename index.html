@@ -1500,16 +1500,16 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 const REF_TEAM = {
   'וובטו':3,'אמיר':1,'ארקיהון':0,'גרשון':4,'יוסי אסרסה':1,
   'ארגה':3,'קסה':2,'ששון':2,'ישראל':2,'מלסה':3,'אדנו':2,'יוני וורקו':4
-};
+}; // אדנו=אדינו מסופה(2)
 
 // key = "rn_mi" (מחזור_משחק)
 const REF_SCHEDULE_DEFAULT = {
   '1_0': {r1:'וובטו', r2:'יוסי אסרסה', obs:'ארגה'},
-  '1_1': {r1:'ארקיהון', r2:'אדנו', obs:'ששון'},
-  '2_0': {r1:'גרשון', r2:'קסה', obs:'ישראל'},
-  '2_1': {r1:'מלסה', r2:'יוני וורקו', obs:'ארגה'},
-  '3_0': {r1:'גרשון', r2:'יוסי אסרסה', obs:'קסה'},
-  '3_1': {r1:'וובטו', r2:'ארקיהון', obs:'ששון'},
+  '1_1': {r1:'ארקיהון', r2:'קסה', obs:'ששון'},
+  '2_0': {r1:'גרשון', r2:'ישראל', obs:'מלסה'},
+  '2_1': {r1:'יוני וורקו', r2:'ארקיהון', obs:'גרשון'},
+  '3_0': {r1:'אדנו', r2:'יוסי אסרסה', obs:'קסה'},
+  '3_1': {r1:'וובטו', r2:'ארגה', obs:'ששון'},
   '4_0': {r1:'ישראל', r2:'אדנו', obs:'יוני וורקו'},
   '4_1': {r1:'מלסה', r2:'וובטו', obs:'ארקיהון'},
   '5_0': {r1:'יוסי אסרסה', r2:'ארגה', obs:'קסה'},
@@ -1599,6 +1599,7 @@ async function saveRefEdit(rn, mi){
   const key = `${rn}_${mi}`;
   REF_SCHEDULE[key] = {r1, r2, obs};
   fbScores[`ref_${key}`] = {r1, r2, obs};
+  fbScores['ref_version'] = REF_SCHEDULE_VERSION;
   localStorage.setItem('ll_sc', JSON.stringify(fbScores));
   closeRefEditor();
   renderAll();
@@ -1606,7 +1607,22 @@ async function saveRefEdit(rn, mi){
   try{ await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})}); }catch(e){}
 }
 
+// ══ REF SCHEDULE VERSION — כל פעם שמשנים שיבוץ, העלה את המספר ══
+const REF_SCHEDULE_VERSION = 3;
+
 function loadRefsFromBin(){
+  // בדוק גרסה — אם הגרסה ב-bin ישנה, תתעלם מה-refs השמורים
+  const binVersion = fbScores['ref_version'] || 0;
+  if(binVersion < REF_SCHEDULE_VERSION){
+    // מחק refs ישנים מ-fbScores
+    for(let rn=1;rn<=15;rn++){
+      for(let mi=0;mi<2;mi++){
+        delete fbScores[`ref_${rn}_${mi}`];
+      }
+    }
+    return; // השתמש ב-DEFAULT
+  }
+  // גרסה עדכנית — טען שינויים ידניים בלבד
   for(let rn=1;rn<=15;rn++){
     for(let mi=0;mi<2;mi++){
       const key=`${rn}_${mi}`;
