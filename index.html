@@ -605,7 +605,73 @@ nav{
 .login-err{font-size:.72rem;color:#f87171;margin-top:7px;min-height:18px;}
 .modal-close{margin-top:12px;font-size:.72rem;color:var(--muted);cursor:pointer;text-decoration:underline;}
 
-/* ── SCORER INPUT in match row ── */
+/* ── REFEREE ROW ── */
+.ref-row{
+  display:flex;align-items:center;
+  gap:6px;padding:8px 14px;
+  background:rgba(139,92,246,.06);
+  border-top:1px solid rgba(139,92,246,.15);
+  flex-wrap:wrap;
+}
+.ref-section-label{
+  font-family:'Inter',sans-serif;
+  font-size:.6rem;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:#a78bfa;
+  margin-left:6px;
+  white-space:nowrap;
+}
+.ref-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:'Heebo',sans-serif;font-size:.62rem;font-weight:600;
+  padding:2px 6px;border-radius:5px;
+  white-space:nowrap;
+}
+.ref-badge.r1,.ref-badge.r2{
+  background:rgba(139,92,246,.12);
+  border:1px solid rgba(139,92,246,.3);
+  color:#c4b5fd;
+}
+.ref-badge.obs{
+  background:rgba(245,158,11,.1);
+  border:1px solid rgba(245,158,11,.25);
+  color:var(--amber);
+}
+.ref-edit-btn{
+  margin-right:auto;
+  padding:3px 8px;
+  background:none;border:1px solid var(--brd2);border-radius:5px;
+  font-size:.62rem;color:var(--muted);cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.ref-edit-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* ── MATCH DETAILS PANEL ── */
+.match-details-btn{
+  margin-right:auto;
+  padding:3px 8px;
+  background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:5px;
+  font-size:.62rem;color:var(--cyan);cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;
+}
+.match-details-btn:hover{background:rgba(0,212,255,.12);}
+.match-details-panel{
+  display:none;
+  background:var(--bg3);
+  border-top:1px solid var(--brd);
+  padding:10px 14px;
+}
+.match-details-panel.open{display:block;animation:fadeUp .2s ease;}
+.md-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 0;border-bottom:1px solid var(--brd);
+  font-size:.78rem;
+}
+.md-row:last-child{border-bottom:none;}
+.md-label{font-family:'Inter',sans-serif;font-size:.62rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;}
+.md-val{font-family:'Heebo',sans-serif;font-weight:700;color:var(--txt);}
+.md-star{color:var(--gold)!important;}
+
 .scorer-btn{
   font-family:'Heebo',sans-serif;
   font-size:.82rem;font-weight:700;color:var(--cyan);
@@ -769,24 +835,37 @@ nav{
 
 /* ── MATCH SCORERS DISPLAY ── */
 .match-scorers-row{
-  padding:6px 14px 8px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
   border-top:1px solid var(--brd);
-  background:rgba(0,212,255,.02);
-  font-size:.72rem;
-  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  background:rgba(0,0,0,.15);
+  gap:0;
+}
+.scorers-side{
+  padding:7px 12px;
+  display:flex;flex-direction:column;gap:3px;
+}
+.scorers-side.home{
+  border-left:1px solid var(--brd);
+  text-align:right;
+  align-items:flex-end;
+}
+.scorers-side.away{
+  text-align:left;
+  align-items:flex-start;
 }
 .scorer-chip{
-  display:inline-flex;align-items:center;gap:3px;
-  background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.18);
-  border-radius:5px;padding:2px 8px;
-  font-family:'Heebo',sans-serif;font-size:.72rem;font-weight:700;
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:'Heebo',sans-serif;font-size:.75rem;font-weight:700;
+  color:var(--txt);white-space:nowrap;
 }
-.scorer-chip .g{color:var(--green);font-family:'Inter',sans-serif;font-weight:900;}
+.scorer-chip .g{
+  color:var(--green);font-family:'Inter',sans-serif;
+  font-weight:900;font-size:.7rem;
+}
 .rc-chip{
   display:inline-flex;align-items:center;gap:3px;
-  background:rgba(255,61,87,.08);border:1px solid rgba(255,61,87,.2);
-  border-radius:5px;padding:2px 8px;
-  font-family:'Heebo',sans-serif;font-size:.72rem;
+  font-family:'Heebo',sans-serif;font-size:.72rem;color:#f87171;
 }
 
 </style>
@@ -975,7 +1054,12 @@ nav{
   <button class="admin-out" onclick="logout()">יציאה</button>
 </div>
 
-<!-- PLAYERS EDITOR MODAL -->
+<!-- REF EDITOR MODAL -->
+<div class="modal-bg" id="refEditorModal">
+  <div class="modal-box" style="width:320px;padding:24px 20px;">
+    <div id="refEditorContent"></div>
+  </div>
+</div>
 <div class="modal-bg" id="playersModal">
   <div class="modal-box" style="width:360px;max-height:85vh;overflow-y:auto;padding:24px 20px;">
     <div class="modal-logo" style="font-size:1.2rem;margin-bottom:4px">👕 עריכת שחקנים</div>
@@ -1207,14 +1291,18 @@ async function initStorage(){
     const data=await res.json();
     fbScores=data.record.scores||{};
     loadPlayersFromBin();
+    loadRefsFromBin();
     applyScores();renderAll();setSync(true);
   }catch(e){
     try{fbScores=JSON.parse(localStorage.getItem('ll_sc')||'{}')}catch(e2){fbScores={};}
     loadPlayersFromBin();
+    loadRefsFromBin();
     applyScores();renderAll();setSync(false);
   }
 }
 async function syncFromBin(){
+  // אל תרענן אם פאנל סטטיסטיקות פתוח
+  if(document.querySelector('.scorer-panel.open')) return;
   try{
     const res=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
     const data=await res.json();
@@ -1278,8 +1366,8 @@ function mrowHTML(rn,m,mi){
   const has=m.sh!==null&&m.sa!==null;
   const canEdit=isAdmin&&!m.fixed;
   let sc_html;
-  if(has) sc_html=`<span class="scorebox${canEdit?' editable':''}" ${canEdit?`onclick="openEd(${rn},${mi})"`:''} >${m.sa}:${m.sh}${canEdit?' ✏️':''}</span>`;
-  else sc_html=canEdit?`<span class="scorebox empty editable" onclick="openEd(${rn},${mi})">✏️</span>`:`<span class="scorebox empty">—</span>`;
+  if(has) sc_html=`<span class="scorebox${canEdit?' editable':''}" ${canEdit?`onclick="openEd(${rn},${mi})"`:''} >${m.sa}:${m.sh}</span>`;
+  else sc_html=canEdit?`<span class="scorebox empty editable" onclick="openEd(${rn},${mi})">הזן</span>`:`<span class="scorebox empty">—</span>`;
   const ed=isAdmin?`<div class="score-ed" id="ed_${rn}_${mi}">
     <label style="font-size:.7rem;color:var(--muted)">${T[m.h]}</label>
     <input class="sinp" id="sh_${rn}_${mi}" type="number" min="0" max="30" placeholder="0">
@@ -1294,27 +1382,48 @@ function mrowHTML(rn,m,mi){
   const matchSc=getScorers(rn,m.h,m.a);
   const mvp=getMVP(rn,m.h,m.a);
   const hasSc=Object.keys(matchSc).length>0||mvp;
-  const mvpLine=mvp?`<div style="text-align:center;padding:5px 14px;font-size:.72rem;color:var(--gold);border-top:1px solid var(--brd);background:rgba(255,215,0,.04)">⭐ שחקן מצטיין: ${mvp}</div>`:'';
+  const mvpLine=''; // מוצג בשורת השופטים
   
-  // רשימת כובשים בתצוגה
-  const scorerChips=Object.entries(matchSc)
-    .filter(([,d])=>d.g>0)
-    .map(([pname,d])=>`<span class="scorer-chip"><span class="g">${d.g}×</span>${pname}</span>`)
-    .join('');
-  const rcChips=Object.entries(matchSc)
-    .filter(([,d])=>d.rc)
-    .map(([pname,d])=>`<span class="rc-chip">🟥${d.rc>1?'×'+d.rc:''} ${pname}</span>`)
-    .join('');
-  const matchScorersRow=(scorerChips||rcChips)?
-    `<div class="match-scorers-row">${scorerChips}${rcChips}</div>`:'';
+  // כובשים ואדומים — כל קבוצה בצד שלה, אדומים בשורה נפרדת
+  function playerSide(ti){
+    const goals = PLAYERS[ti].players
+      .filter(p => matchSc[p]?.g > 0)
+      .map(p => {
+        const ps = matchSc[p]||{};
+        return `<span class="scorer-chip"><span class="g">⚽${ps.g>1?' ×'+ps.g:''}</span> ${p}</span>`;
+      }).join('');
+    const reds = PLAYERS[ti].players
+      .filter(p => matchSc[p]?.rc > 0)
+      .map(p => {
+        const ps = matchSc[p]||{};
+        return `<span class="rc-chip">🟥${ps.rc>1?' ×'+ps.rc:''} ${p}</span>`;
+      }).join('');
+    return {goals, reds, hasAny: !!(goals||reds)};
+  }
+  const homeSide = playerSide(m.h);
+  const awaySide = playerSide(m.a);
+  const sid = `sc_${rn}_${mi}`;
+  const hasRC = !!(homeSide.reds||awaySide.reds);
+  const matchScorersRow = (homeSide.hasAny||awaySide.hasAny) ? `
+    <div style="text-align:center;border-top:1px solid var(--brd)">
+      <button onclick="toggleScorersRow('${sid}')" style="background:none;border:none;color:var(--muted);font-family:'Heebo',sans-serif;font-size:.7rem;padding:5px 12px;cursor:pointer;width:100%;">
+        📋 כובשים ▼
+      </button>
+    </div>
+    <div class="match-scorers-row" id="${sid}" style="display:none;">
+      <div class="scorers-side home">${homeSide.goals||''}</div>
+      <div class="scorers-side away">${awaySide.goals||''}</div>
+      ${hasRC ? `<div class="scorers-side home" style="border-top:1px solid var(--brd);padding-top:5px;">${homeSide.reds||''}</div>
+      <div class="scorers-side away" style="border-top:1px solid var(--brd);padding-top:5px;">${awaySide.reds||''}</div>` : ''}
+    </div>` : '';
   
-  const scorerBtnRow=(isAdmin&&has)?`<div style="text-align:center;padding:6px 14px;border-top:1px solid var(--brd)"><button class="scorer-btn" onclick="toggleScorerPanel(${rn},${mi})">⚽ ${hasSc?'ערוך סטטיסטיקות':'הזן סטטיסטיקות'}</button></div>`:'';
+  const scorerBtnRow=(isAdmin&&has)?`<div style="text-align:center;padding:6px 14px;border-top:1px solid var(--brd)"><button class="scorer-btn" onclick="toggleScorerPanel(${rn},${mi},${m.h},${m.a})">⚽ ${hasSc?'ערוך סטטיסטיקות':'הזן סטטיסטיקות'}</button></div>`:'';
   return `<div class="mrow s${m.slot}" id="mrow_${rn}_${mi}">
     <span class="tpill">${m.slot===0?'16:00':'17:00'}</span>
     <span class="t-home">${T[m.h]}</span>
     ${sc_html}
     <span class="t-away">${T[m.a]}</span>
-  </div>${matchScorersRow}${mvpLine}${scorerBtnRow}${ed}${spanel}`;
+  </div>${matchScorersRow}${mvpLine}${ed}${scorerBtnRow}${spanel}`;
 }
 
 function openEd(rn,mi){document.querySelectorAll('.score-ed.open').forEach(e=>e.classList.remove('open'));const e=document.getElementById(`ed_${rn}_${mi}`);if(e){e.classList.add('open');e.querySelector('.sinp').focus();}}
@@ -1339,12 +1448,15 @@ async function delScore(rn,mi,h,a){
 
 function roundHTML({rn,matches,bye}){
   let h=`<div class="rcard-head"><span class="rcard-num">מחזור ${rn}</span><span class="rcard-date">שישי, ${dateStr(rn)}</span></div>`;
-  matches.forEach((m,mi)=>h+=mrowHTML(rn,m,mi));
+  matches.forEach((m,mi)=>{h+=mrowHTML(rn,m,mi); h+=refRowHTML(rn,mi);});
   if(bye!==null)h+=`<div class="mrow bye-row"><span class="bye-txt">😴 חופש: <span class="bye-name">${T[bye]}</span></span></div>`;
   return h;
 }
 
 function renderAll(){
+  // אם פאנל כובשים פתוח — אל תמחק אותו
+  const openPanel = document.querySelector('.scorer-panel.open');
+  if(openPanel) return;
   // Home
   document.getElementById('homeCard').innerHTML=roundHTML(rounds[0]);
   // Schedule
@@ -1386,6 +1498,127 @@ function renderAll(){
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800);}
 
 // ══ PLAYERS DATA ══
+// ══ REFEREE SCHEDULE ══
+// מיפוי שופט → קבוצה (לא יכול לשפוט קבוצתו)
+const REF_TEAM = {
+  'וובטו':3,'אמיר':1,'ארקיהון':0,'גרשון':4,'יוסי אסרסה':1,
+  'ארגה':3,'קסה':2,'ששון':2,'ישראל':2,'מלסה':3,'אדנו':2,'יוני וורקו':4
+};
+
+// key = "rn_mi" (מחזור_משחק)
+const REF_SCHEDULE_DEFAULT = {
+  '1_0': {r1:'וובטו', r2:'יוסי אסרסה', obs:'ארגה'},
+  '1_1': {r1:'ארקיהון', r2:'אדנו', obs:'ששון'},
+  '2_0': {r1:'גרשון', r2:'קסה', obs:'ישראל'},
+  '2_1': {r1:'מלסה', r2:'יוני וורקו', obs:'ארגה'},
+  '3_0': {r1:'גרשון', r2:'יוסי אסרסה', obs:'קסה'},
+  '3_1': {r1:'וובטו', r2:'ארקיהון', obs:'ששון'},
+  '4_0': {r1:'ישראל', r2:'אדנו', obs:'יוני וורקו'},
+  '4_1': {r1:'מלסה', r2:'וובטו', obs:'ארקיהון'},
+  '5_0': {r1:'יוסי אסרסה', r2:'ארגה', obs:'קסה'},
+  '5_1': {r1:'גרשון', r2:'מלסה', obs:'יוני וורקו'},
+  '6_0': {r1:'אמיר', r2:'וובטו', obs:'גרשון'},
+  '6_1': {r1:'אמיר', r2:'ששון', obs:'ישראל'},
+  '7_0': {r1:'אדנו', r2:'ארגה', obs:'קסה'},
+  '7_1': {r1:'אמיר', r2:'ארקיהון', obs:'יוסי אסרסה'},
+  '8_0': {r1:'אמיר', r2:'ששון', obs:'ישראל'},
+  '8_1': {r1:'מלסה', r2:'אדנו', obs:'וובטו'},
+  '9_0': {r1:'יוני וורקו', r2:'ארקיהון', obs:'גרשון'},
+  '9_1': {r1:'אמיר', r2:'יוסי אסרסה', obs:'ארגה'},
+  '10_0': {r1:'קסה', r2:'ששון', obs:'ישראל'},
+  '10_1': {r1:'מלסה', r2:'יוני וורקו', obs:'וובטו'},
+  '11_0': {r1:'אמיר', r2:'גרשון', obs:'יוסי אסרסה'},
+  '11_1': {r1:'אדנו', r2:'ארקיהון', obs:'קסה'},
+  '12_0': {r1:'ארגה', r2:'ששון', obs:'ישראל'},
+  '12_1': {r1:'יוני וורקו', r2:'אמיר', obs:'ארקיהון'},
+  '13_0': {r1:'אדנו', r2:'גרשון', obs:'יוסי אסרסה'},
+  '13_1': {r1:'מלסה', r2:'וובטו', obs:'ארגה'},
+  '14_0': {r1:'קסה', r2:'ששון', obs:'ישראל'},
+  '14_1': {r1:'מלסה', r2:'וובטו', obs:'אמיר'},
+  '15_0': {r1:'אדנו', r2:'יוסי אסרסה', obs:'ארגה'},
+  '15_1': {r1:'יוני וורקו', r2:'ארקיהון', obs:'גרשון'},
+};
+
+let REF_SCHEDULE = {...REF_SCHEDULE_DEFAULT};
+
+function getRefs(rn, mi){ 
+  const key = `${rn}_${mi}`;
+  return REF_SCHEDULE[key] || REF_SCHEDULE_DEFAULT[key] || null; 
+}
+
+function refRowHTML(rn, mi){
+  const r = getRefs(rn, mi);
+  if(!r) return '';
+  const editBtn = isAdmin 
+    ? `<button class="ref-edit-btn" onclick="openRefEditor(${rn},${mi})">✏️</button>` 
+    : '';
+  const mvp = getMVP(rn, rounds[rn-1]?.matches[mi]?.h, rounds[rn-1]?.matches[mi]?.a);
+
+  return `<div class="ref-row">
+    <span class="ref-section-label">🏁 שופטים</span>
+    <span class="ref-badge r1">🟣 ${r.r1}</span>
+    <span class="ref-badge r2">🟣 ${r.r2}</span>
+    <span class="ref-badge obs">👁 ${r.obs}</span>
+    ${editBtn}
+  </div>
+  ${mvp ? `<div style="text-align:center;padding:5px 14px;font-size:.72rem;color:var(--gold);border-top:1px solid var(--brd);background:rgba(255,215,0,.04)">⭐ שחקן מצטיין: ${mvp}</div>` : ''}`;
+}
+
+function toggleMatchDetails(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+function openRefEditor(rn, mi){
+  const r = getRefs(rn, mi);
+  const h = rounds[rn-1].matches[mi]?.h;
+  const a = rounds[rn-1].matches[mi]?.a;
+  const allRefs = ['וובטו','אמיר','ארקיהון','גרשון','יוסי אסרסה','ארגה','קסה','ששון','ישראל','מלסה','אדנו','יוני וורקו'];
+  // סנן שופטים שיכולים לשפוט
+  const eligible = allRefs.filter(ref => REF_TEAM[ref] !== h && REF_TEAM[ref] !== a);
+  
+  const makeSelect = (id, val) => `<select id="${id}" style="padding:5px 8px;background:var(--srf2);border:1px solid var(--brd2);border-radius:6px;color:var(--txt);font-family:'Heebo',sans-serif;font-size:.8rem;width:100%;">
+    ${eligible.map(n=>`<option value="${n}"${n===val?' selected':''}>${n}</option>`).join('')}
+  </select>`;
+  
+  document.getElementById('refEditorContent').innerHTML = `
+    <div style="font-size:.75rem;color:var(--cyan);font-weight:700;margin-bottom:4px">מחזור ${rn} — משחק ${mi+1}</div>
+    <div style="font-size:.65rem;color:var(--muted);margin-bottom:12px">${T[h]} נגד ${T[a]}</div>
+    <div style="margin-bottom:8px"><label style="font-size:.65rem;color:#c4b5fd;display:block;margin-bottom:3px">🟣 שופט 1</label>${makeSelect('re_r1',r.r1)}</div>
+    <div style="margin-bottom:8px"><label style="font-size:.65rem;color:#c4b5fd;display:block;margin-bottom:3px">🟣 שופט 2</label>${makeSelect('re_r2',r.r2)}</div>
+    <div style="margin-bottom:14px"><label style="font-size:.65rem;color:var(--amber);display:block;margin-bottom:3px">👁 משקיף</label>${makeSelect('re_obs',r.obs)}</div>
+    <div style="display:flex;gap:8px;">
+      <button class="sbtn save" style="flex:1;padding:9px" onclick="saveRefEdit(${rn},${mi})">💾 שמור</button>
+      <button class="sbtn cancel" style="flex:1;padding:9px" onclick="closeRefEditor()">סגור</button>
+    </div>`;
+  document.getElementById('refEditorModal').classList.add('show');
+}
+function closeRefEditor(){ document.getElementById('refEditorModal').classList.remove('show'); }
+
+async function saveRefEdit(rn, mi){
+  const r1 = document.getElementById('re_r1').value;
+  const r2 = document.getElementById('re_r2').value;
+  const obs = document.getElementById('re_obs').value;
+  const key = `${rn}_${mi}`;
+  REF_SCHEDULE[key] = {r1, r2, obs};
+  fbScores[`ref_${key}`] = {r1, r2, obs};
+  localStorage.setItem('ll_sc', JSON.stringify(fbScores));
+  closeRefEditor();
+  renderAll();
+  showToast(`שיבוץ עודכן ✅`);
+  try{ await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})}); }catch(e){}
+}
+
+function loadRefsFromBin(){
+  for(let rn=1;rn<=15;rn++){
+    for(let mi=0;mi<2;mi++){
+      const key=`${rn}_${mi}`;
+      const saved = fbScores[`ref_${key}`];
+      if(saved) REF_SCHEDULE[key] = saved;
+    }
+  }
+}
+
 const PLAYERS = {
   0: { // אדיר F-35
     captain: 'ארקיהון',
@@ -1578,7 +1811,7 @@ function scorerPanelHTML(rn,h,a,mi){
   }).join('');
 
   const hasSc=Object.keys(sc).length>0||mvp;
-  // הצג פנל רק אם יש נתונים (צופה) או תמיד (מנהל)
+  // מנהל תמיד רואה פאנל, צופה רק אם יש נתונים
   if(!canEdit && !hasSc) return '';
 
   return `<div class="scorer-panel" id="${id}">
@@ -1591,15 +1824,28 @@ function scorerPanelHTML(rn,h,a,mi){
   </div>`;
 }
 
-function toggleScorerPanel(rn,mi){
-  const id=`sp_${rn}_${mi}`;
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.classList.toggle('open');
+function toggleScorerPanel(rn,mi,h,a){
+  document.querySelectorAll('.scorer-panel').forEach(e=>{
+    if(e.id!==`sp_${rn}_${mi}`) e.classList.remove('open');
+  });
+  const el=document.getElementById(`sp_${rn}_${mi}`);
+  if(el){
+    el.classList.toggle('open');
+    if(el.classList.contains('open')) el.querySelector('.scorer-num')?.focus();
+  }
 }
 function closeScorerPanel(id){
   const el=document.getElementById(id);
   if(el) el.classList.remove('open');
+}
+
+function toggleScorersRow(id){
+  const el=document.getElementById(id);
+  const btn=el?.previousElementSibling?.querySelector('button');
+  if(!el) return;
+  const open=el.style.display==='grid';
+  el.style.display=open?'none':'grid';
+  if(btn) btn.textContent=open?'📋 כובשים ▼':'📋 כובשים ▲';
 }
 
 function toggleScorers(btn){
@@ -1626,15 +1872,36 @@ async function saveScorers(rn,mi,h,a){
       const gEl=document.getElementById(`sg_${rn}_${mi}_${key}`);
       if(!gEl) return;
       const g=parseInt(gEl.value)||0;
-      // find this player's row
-      const prows=[...panel.querySelectorAll('.scorer-player-row')];
-      const prow=prows.find(r=>r.querySelector('.scorer-pname')?.textContent.replace('🎽','').trim()===pname);
-      const rcKey=pname.replace(/[\s.\/]/g,'_');
-      const rcEl=document.getElementById(`src_${rn}_${mi}_${rcKey}`);
+      const rcEl=document.getElementById(`src_${rn}_${mi}_${key}`);
       const rc=parseInt(rcEl?.value)||0;
       if(g||rc) sc[pname]={g,rc};
     });
   });
+
+  // ── ולידציה: סכום גולים = תוצאה ──
+  const match = rounds[rn-1]?.matches[mi];
+  if(match && match.sh!==null && match.sa!==null){
+    const homeGoals = PLAYERS[parseInt(h)].players.reduce((s,p)=>{
+      const key=p.replace(/[\s.\/]/g,'_');
+      const el=document.getElementById(`sg_${rn}_${mi}_${key}`);
+      return s+(parseInt(el?.value)||0);
+    },0);
+    const awayGoals = PLAYERS[parseInt(a)].players.reduce((s,p)=>{
+      const key=p.replace(/[\s.\/]/g,'_');
+      const el=document.getElementById(`sg_${rn}_${mi}_${key}`);
+      return s+(parseInt(el?.value)||0);
+    },0);
+
+    if(homeGoals !== match.sh){
+      showToast(`❌ גולים של ${T[parseInt(h)]}: ${homeGoals} ≠ תוצאה ${match.sh}`);
+      return;
+    }
+    if(awayGoals !== match.sa){
+      showToast(`❌ גולים של ${T[parseInt(a)]}: ${awayGoals} ≠ תוצאה ${match.sa}`);
+      return;
+    }
+  }
+
   // MVP
   const mvpBtn=panel.querySelector('.mvp-btn.on');
   let mvpName=null;
