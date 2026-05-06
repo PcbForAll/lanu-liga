@@ -1301,8 +1301,7 @@ async function initStorage(){
   }
 }
 async function syncFromBin(){
-  // אל תרענן אם פאנל סטטיסטיקות פתוח
-  if(document.querySelector('.scorer-panel.open')) return;
+  if(scorerPanelOpen) return;
   try{
     const res=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
     const data=await res.json();
@@ -1454,9 +1453,7 @@ function roundHTML({rn,matches,bye}){
 }
 
 function renderAll(){
-  // אם פאנל כובשים פתוח — אל תמחק אותו
-  const openPanel = document.querySelector('.scorer-panel.open');
-  if(openPanel) return;
+  if(scorerPanelOpen) return;
   // Home
   document.getElementById('homeCard').innerHTML=roundHTML(rounds[0]);
   // Schedule
@@ -1824,19 +1821,24 @@ function scorerPanelHTML(rn,h,a,mi){
   </div>`;
 }
 
+let scorerPanelOpen = false;
+
 function toggleScorerPanel(rn,mi,h,a){
   document.querySelectorAll('.scorer-panel').forEach(e=>{
     if(e.id!==`sp_${rn}_${mi}`) e.classList.remove('open');
   });
   const el=document.getElementById(`sp_${rn}_${mi}`);
   if(el){
+    const opening = !el.classList.contains('open');
     el.classList.toggle('open');
-    if(el.classList.contains('open')) el.querySelector('.scorer-num')?.focus();
+    scorerPanelOpen = opening;
+    if(opening) el.querySelector('.scorer-num')?.focus();
   }
 }
 function closeScorerPanel(id){
   const el=document.getElementById(id);
   if(el) el.classList.remove('open');
+  scorerPanelOpen = false;
 }
 
 function toggleScorersRow(id){
