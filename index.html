@@ -987,7 +987,7 @@ nav{
   <div class="sync-row"><div class="sdot" id="sdot"></div><span id="slbl">בודק חיבור...</span></div>
   <div class="sec-hdr">
     <div class="sec-dot"></div>
-    <div><div class="sec-eye">תוצאות</div><div class="sec-title">מחזור 1</div></div>
+    <div><div class="sec-eye">תוצאות</div><div class="sec-title" id="homeRoundTitle">מחזור 1</div></div>
   </div>
   <div class="rcard" id="homeCard"></div>
 </div>
@@ -1109,6 +1109,13 @@ function shortDate(rn){
   const ms=Date.UTC(2026,4,1)+(rn-1)*7*86400000;
   const d=new Date(ms);
   return d.getUTCDate()+'/'+(d.getUTCMonth()+1);
+}
+
+function getCurrentRound(){
+  const now = Date.now();
+  const start = Date.UTC(2026,4,1); // 1/5/2026
+  const week = Math.floor((now - start) / (7*86400000));
+  return Math.max(0, Math.min(14, week));
 }
 
 const rounds=[], byeOf=[[],[],[],[],[]];
@@ -1361,23 +1368,23 @@ function goPage(n){
   if(n==='teams') renderTeams();
 }
 
-function mrowHTML(rn,m,mi){
+function mrowHTML(rn,m,mi,pfx=''){
   const has=m.sh!==null&&m.sa!==null;
   const canEdit=isAdmin&&!m.fixed;
   let sc_html;
-  if(has) sc_html=`<span class="scorebox${canEdit?' editable':''}" ${canEdit?`onclick="openEd(${rn},${mi})"`:''} >${m.sa}:${m.sh}</span>`;
-  else sc_html=canEdit?`<span class="scorebox empty editable" onclick="openEd(${rn},${mi})">הזן</span>`:`<span class="scorebox empty">—</span>`;
-  const ed=isAdmin?`<div class="score-ed" id="ed_${rn}_${mi}">
+  if(has) sc_html=`<span class="scorebox${canEdit?' editable':''}" ${canEdit?`onclick="openEd('${pfx}',${rn},${mi})"`:''} >${m.sa}:${m.sh}</span>`;
+  else sc_html=canEdit?`<span class="scorebox empty editable" onclick="openEd('${pfx}',${rn},${mi})">הזן</span>`:`<span class="scorebox empty">—</span>`;
+  const ed=isAdmin?`<div class="score-ed" id="ed_${pfx}${rn}_${mi}">
     <label style="font-size:.7rem;color:var(--muted)">${T[m.h]}</label>
-    <input class="sinp" id="sh_${rn}_${mi}" type="number" min="0" max="30" placeholder="0">
+    <input class="sinp" id="sh_${pfx}${rn}_${mi}" type="number" min="0" max="30" placeholder="0">
     <span class="sdash">:</span>
-    <input class="sinp" id="sa_${rn}_${mi}" type="number" min="0" max="30" placeholder="0">
+    <input class="sinp" id="sa_${pfx}${rn}_${mi}" type="number" min="0" max="30" placeholder="0">
     <label style="font-size:.7rem;color:var(--muted)">${T[m.a]}</label>
-    <button class="sbtn save" onclick="sub(${rn},${mi},${m.h},${m.a})">💾</button>
-    <button class="sbtn cancel" onclick="closeEd(${rn},${mi})">ביטול</button>
+    <button class="sbtn save" onclick="sub('${pfx}',${rn},${mi},${m.h},${m.a})">💾</button>
+    <button class="sbtn cancel" onclick="closeEd('${pfx}',${rn},${mi})">ביטול</button>
     <button class="sbtn del" onclick="delScore(${rn},${mi},${m.h},${m.a})">🗑 מחק</button>
   </div>`:'';
-  const spanel=scorerPanelHTML(rn,m.h,m.a,mi);
+  const spanel=scorerPanelHTML(rn,m.h,m.a,mi,pfx);
   const matchSc=getScorers(rn,m.h,m.a);
   const mvp=getMVP(rn,m.h,m.a);
   const hasSc=Object.keys(matchSc).length>0||mvp;
@@ -1391,18 +1398,32 @@ function mrowHTML(rn,m,mi){
         const ps = matchSc[p]||{};
         return `<span class="scorer-chip"><span class="g">⚽${ps.g>1?' ×'+ps.g:''}</span> ${p}</span>`;
       }).join('');
+    const ogs = PLAYERS[ti].players
+      .filter(p => matchSc[p]?.og > 0)
+      .map(p => {
+        const ps = matchSc[p]||{};
+        return `<span class="scorer-chip"><span class="g" style="color:var(--red)">⚽עצמי${ps.og>1?' ×'+ps.og:''}</span> ${p}</span>`;
+      }).join('');
+    const yellows = PLAYERS[ti].players
+      .filter(p => matchSc[p]?.yc > 0)
+      .map(p => {
+        const ps = matchSc[p]||{};
+        return `<span class="rc-chip" style="color:var(--amber)">🟨${ps.yc>1?' ×'+ps.yc:''} ${p}</span>`;
+      }).join('');
     const reds = PLAYERS[ti].players
       .filter(p => matchSc[p]?.rc > 0)
       .map(p => {
         const ps = matchSc[p]||{};
         return `<span class="rc-chip">🟥${ps.rc>1?' ×'+ps.rc:''} ${p}</span>`;
       }).join('');
-    return {goals, reds, hasAny: !!(goals||reds)};
+    return {goals, ogs, yellows, reds, hasAny: !!(goals||ogs||yellows||reds)};
   }
   const homeSide = playerSide(m.h);
   const awaySide = playerSide(m.a);
   const sid = `sc_${rn}_${mi}`;
   const hasRC = !!(homeSide.reds||awaySide.reds);
+  const hasYC = !!(homeSide.yellows||awaySide.yellows);
+  const hasOG = !!(homeSide.ogs||awaySide.ogs);
   const matchScorersRow = (homeSide.hasAny||awaySide.hasAny) ? `
     <div style="text-align:center;border-top:1px solid var(--brd)">
       <button onclick="toggleScorersRow('${sid}')" style="background:none;border:none;color:var(--muted);font-family:'Heebo',sans-serif;font-size:.7rem;padding:5px 12px;cursor:pointer;width:100%;">
@@ -1412,11 +1433,15 @@ function mrowHTML(rn,m,mi){
     <div class="match-scorers-row" id="${sid}" style="display:none;">
       <div class="scorers-side home">${homeSide.goals||''}</div>
       <div class="scorers-side away">${awaySide.goals||''}</div>
+      ${hasOG ? `<div class="scorers-side home" style="border-top:1px solid var(--brd);padding-top:5px;">${homeSide.ogs||''}</div>
+      <div class="scorers-side away" style="border-top:1px solid var(--brd);padding-top:5px;">${awaySide.ogs||''}</div>` : ''}
+      ${hasYC ? `<div class="scorers-side home" style="border-top:1px solid var(--brd);padding-top:5px;">${homeSide.yellows||''}</div>
+      <div class="scorers-side away" style="border-top:1px solid var(--brd);padding-top:5px;">${awaySide.yellows||''}</div>` : ''}
       ${hasRC ? `<div class="scorers-side home" style="border-top:1px solid var(--brd);padding-top:5px;">${homeSide.reds||''}</div>
       <div class="scorers-side away" style="border-top:1px solid var(--brd);padding-top:5px;">${awaySide.reds||''}</div>` : ''}
     </div>` : '';
   
-  const scorerBtnRow=(isAdmin&&has)?`<div style="text-align:center;padding:6px 14px;border-top:1px solid var(--brd)"><button class="scorer-btn" onclick="toggleScorerPanel(${rn},${mi},${m.h},${m.a})">⚽ ${hasSc?'ערוך סטטיסטיקות':'הזן סטטיסטיקות'}</button></div>`:'';
+  const scorerBtnRow=(isAdmin&&has)?`<div style="text-align:center;padding:6px 14px;border-top:1px solid var(--brd)"><button class="scorer-btn" onclick="toggleScorerPanel('${pfx}',${rn},${mi},${m.h},${m.a})">⚽ ${hasSc?'ערוך סטטיסטיקות':'הזן סטטיסטיקות'}</button></div>`:'';
   return `<div class="mrow s${m.slot}" id="mrow_${rn}_${mi}">
     <span class="tpill">${m.slot===0?'16:00':'17:00'}</span>
     <span class="t-home">${T[m.h]}</span>
@@ -1425,13 +1450,13 @@ function mrowHTML(rn,m,mi){
   </div>${matchScorersRow}${mvpLine}${ed}${scorerBtnRow}${spanel}`;
 }
 
-function openEd(rn,mi){document.querySelectorAll('.score-ed.open').forEach(e=>e.classList.remove('open'));const e=document.getElementById(`ed_${rn}_${mi}`);if(e){e.classList.add('open');e.querySelector('.sinp').focus();}}
-function closeEd(rn,mi){const e=document.getElementById(`ed_${rn}_${mi}`);if(e)e.classList.remove('open');}
-function sub(rn,mi,h,a){
-  const sh=parseInt(document.getElementById(`sh_${rn}_${mi}`).value);
-  const sa=parseInt(document.getElementById(`sa_${rn}_${mi}`).value);
+function openEd(pfx,rn,mi){document.querySelectorAll('.score-ed.open').forEach(e=>e.classList.remove('open'));const e=document.getElementById(`ed_${pfx}${rn}_${mi}`);if(e){e.classList.add('open');e.querySelector('.sinp').focus();}}
+function closeEd(pfx,rn,mi){const e=document.getElementById(`ed_${pfx}${rn}_${mi}`);if(e)e.classList.remove('open');}
+function sub(pfx,rn,mi,h,a){
+  const sh=parseInt(document.getElementById(`sh_${pfx}${rn}_${mi}`).value);
+  const sa=parseInt(document.getElementById(`sa_${pfx}${rn}_${mi}`).value);
   if(isNaN(sh)||isNaN(sa)||sh<0||sa<0){showToast('נא להזין מספרים תקינים');return;}
-  closeEd(rn,mi);doSave(rn,h,a,sh,sa);
+  closeEd(pfx,rn,mi);doSave(rn,h,a,sh,sa);
 }
 async function delScore(rn,mi,h,a){
   const k=`r${rn}_${h}_${a}`;
@@ -1445,17 +1470,20 @@ async function delScore(rn,mi,h,a){
   }catch(e){showToast('נמחק מקומית');}
 }
 
-function roundHTML({rn,matches,bye}){
+function roundHTML({rn,matches,bye},pfx=''){
   let h=`<div class="rcard-head"><span class="rcard-num">מחזור ${rn}</span><span class="rcard-date">שישי, ${dateStr(rn)}</span></div>`;
-  matches.forEach((m,mi)=>{h+=mrowHTML(rn,m,mi); h+=refRowHTML(rn,mi);});
+  matches.forEach((m,mi)=>{h+=mrowHTML(rn,m,mi,pfx); h+=refRowHTML(rn,mi);});
   if(bye!==null)h+=`<div class="mrow bye-row"><span class="bye-txt">😴 חופש: <span class="bye-name">${T[bye]}</span></span></div>`;
   return h;
 }
 
 function renderAll(){
   if(scorerPanelOpen) return;
-  // Home
-  document.getElementById('homeCard').innerHTML=roundHTML(rounds[0]);
+  // Home — מחזור נוכחי לפי תאריך
+  const homeRoundIdx = getCurrentRound();
+  const homeRound = rounds[homeRoundIdx];
+  document.getElementById('homeCard').innerHTML=roundHTML(homeRound,'home_');
+  document.getElementById('homeRoundTitle').textContent=`מחזור ${homeRound.rn}`;
   // Schedule
   const g=document.getElementById('schedGrid');g.innerHTML='';
   rounds.forEach(r=>{const c=document.createElement('div');c.className='rcard';c.innerHTML=roundHTML(r);g.appendChild(c);});
@@ -1709,6 +1737,7 @@ function allPlayerStats(){
         stats[pname].goals+=(data.g||0);
         stats[pname].yc+=(data.yc||0);
         stats[pname].rc+=(data.rc||0);
+        stats[pname].og=(stats[pname].og||0)+(data.og||0);
       });
       const mvp=getMVP(rn,m.h,m.a);
       if(mvp&&stats[mvp]) stats[mvp].mvp++;
@@ -1777,7 +1806,7 @@ function renderTeams(){
   card.className='team-card';
 
   let rows=pd.players.map(pname=>{
-    const s=stats[pname]||{goals:0,mvp:0,rc:0};
+    const s=stats[pname]||{goals:0,mvp:0,yc:0,rc:0};
     const isCap=pname===pd.captain;
     const isCoach=pname===pd.coach;
     return `<tr>
@@ -1788,6 +1817,7 @@ function renderTeams(){
       </td>
       <td class="stat-goals">${s.goals||'—'}</td>
       <td class="stat-mvp">${s.mvp?'⭐'.repeat(Math.min(s.mvp,5))+(s.mvp>5?` (${s.mvp})`:''):'—'}</td>
+      <td>${s.yc?`🟨 ${s.yc}`:'—'}</td>
       <td class="stat-rc">${s.rc?`🟥 ${s.rc}`:'—'}</td>
     </tr>`;
   }).join('');
@@ -1802,6 +1832,7 @@ function renderTeams(){
         <th>שחקן</th>
         <th>⚽ גולים</th>
         <th>⭐ מצטיין</th>
+        <th>🟨 צהוב</th>
         <th>🟥 אדום</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -1812,10 +1843,10 @@ function renderTeams(){
 function setTeam(i){activeTeam=i;renderTeams();}
 
 // ══ SCORER PANEL in match rows ══
-function scorerPanelHTML(rn,h,a,mi){
+function scorerPanelHTML(rn,h,a,mi,pfx=''){
   const sc=getScorers(rn,h,a);
   const mvp=getMVP(rn,h,a);
-  const id=`sp_${rn}_${mi}`;
+  const id=`sp_${pfx}${rn}_${mi}`;
   const canEdit=isAdmin;
 
   const teamRows=[h,a].map(ti=>{
@@ -1836,13 +1867,21 @@ function scorerPanelHTML(rn,h,a,mi){
         <span class="scorer-pname${pname===pd.captain?' captain':''}" data-name="${pname}">${pname}${pname===pd.coach?' 🎽':''}</span>
         <div class="scorer-goals">
           <label>⚽</label>
-          <input class="scorer-num" id="sg_${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="15" value="${ps.g||0}">
+          <input class="scorer-num" id="sg_${pfx}${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="15" value="${ps.g||0}">
+        </div>
+        <div class="scorer-goals" title="שער עצמי">
+          <label style="font-size:.5rem;color:var(--red);line-height:1.1;text-align:center">⚽<br>עצמי</label>
+          <input class="scorer-num" id="sog_${pfx}${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="15" value="${ps.og||0}" style="border-color:rgba(255,61,87,.3);">
+        </div>
+        <div class="scorer-goals">
+          <label>🟨</label>
+          <input class="scorer-num" id="syc_${pfx}${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="5" value="${ps.yc||0}" style="border-color:rgba(255,176,32,.3);">
         </div>
         <div class="scorer-goals">
           <label>🟥</label>
-          <input class="scorer-num" id="src_${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="10" value="${ps.rc||0}" style="border-color:rgba(255,61,87,.3);">
+          <input class="scorer-num" id="src_${pfx}${rn}_${mi}_${pname.replace(/[\s.\/]/g,'_')}" type="number" min="0" max="10" value="${ps.rc||0}" style="border-color:rgba(255,61,87,.3);">
         </div>
-        <button class="mvp-btn${mvp===pname?' on':''}" onclick="selectMVP('${rn}','${mi}',this)">⭐</button>
+        <button class="mvp-btn${mvp===pname?' on':''}" onclick="selectMVP('${rn}','${mi}','${pfx}',this)">⭐</button>
       </div>`;
     }).filter(Boolean).join('');
     if(!prows && !canEdit) return '';
@@ -1854,10 +1893,10 @@ function scorerPanelHTML(rn,h,a,mi){
   if(!canEdit && !hasSc) return '';
 
   return `<div class="scorer-panel" id="${id}">
-    <div class="scorer-title">${canEdit?'⚽ כובשים · 🟥 אדומים · ⭐ מצטיין':'📊 סטטיסטיקות משחק'}</div>
+    <div class="scorer-title">${canEdit?'⚽ כובשים · עצמי · 🟨 צהוב · 🟥 אדום · ⭐ מצטיין':'📊 סטטיסטיקות משחק'}</div>
     ${teamRows}
     ${canEdit?`<div class="scorer-save-row">
-      <button class="sbtn save" onclick="saveScorers('${rn}','${mi}','${h}','${a}')">💾 שמור</button>
+      <button class="sbtn save" onclick="saveScorers('${rn}','${mi}','${h}','${a}','${pfx}')">💾 שמור</button>
       <button class="sbtn cancel" onclick="closeScorerPanel('${id}')">סגור</button>
     </div>`:''}
   </div>`;
@@ -1865,11 +1904,11 @@ function scorerPanelHTML(rn,h,a,mi){
 
 let scorerPanelOpen = false;
 
-function toggleScorerPanel(rn,mi,h,a){
+function toggleScorerPanel(pfx,rn,mi,h,a){
   document.querySelectorAll('.scorer-panel').forEach(e=>{
-    if(e.id!==`sp_${rn}_${mi}`) e.classList.remove('open');
+    if(e.id!==`sp_${pfx}${rn}_${mi}`) e.classList.remove('open');
   });
-  const el=document.getElementById(`sp_${rn}_${mi}`);
+  const el=document.getElementById(`sp_${pfx}${rn}_${mi}`);
   if(el){
     const opening = !el.classList.contains('open');
     el.classList.toggle('open');
@@ -1900,48 +1939,56 @@ function toggleScorers(btn){
     :`ראה עוד ${list.children.length} כובשים ▼`;
 }
 
-function selectMVP(rn,mi,btn){
-  const panel=document.getElementById(`sp_${rn}_${mi}`);
+function selectMVP(rn,mi,pfx,btn){
+  const panel=document.getElementById(`sp_${pfx}${rn}_${mi}`);
   panel.querySelectorAll('.mvp-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
 }
 
-async function saveScorers(rn,mi,h,a){
-  const panel=document.getElementById(`sp_${rn}_${mi}`);
+async function saveScorers(rn,mi,h,a,pfx=''){
+  const panel=document.getElementById(`sp_${pfx}${rn}_${mi}`);
   const sc={};
   const teams=[parseInt(h),parseInt(a)];
   teams.forEach(ti=>{
     PLAYERS[ti].players.forEach(pname=>{
       const key=pname.replace(/[\s.\/]/g,'_');
-      const gEl=document.getElementById(`sg_${rn}_${mi}_${key}`);
+      const gEl=document.getElementById(`sg_${pfx}${rn}_${mi}_${key}`);
       if(!gEl) return;
       const g=parseInt(gEl.value)||0;
-      const rcEl=document.getElementById(`src_${rn}_${mi}_${key}`);
+      const rcEl=document.getElementById(`src_${pfx}${rn}_${mi}_${key}`);
       const rc=parseInt(rcEl?.value)||0;
-      if(g||rc) sc[pname]={g,rc};
+      const ycEl=document.getElementById(`syc_${pfx}${rn}_${mi}_${key}`);
+      const yc=parseInt(ycEl?.value)||0;
+      const ogEl=document.getElementById(`sog_${pfx}${rn}_${mi}_${key}`);
+      const og=parseInt(ogEl?.value)||0;
+      if(g||rc||yc||og) sc[pname]={g,rc,yc,og};
     });
   });
 
-  // ── ולידציה: סכום גולים = תוצאה ──
+  // ── ולידציה: סכום גולים = תוצאה (כולל שערים עצמיים) ──
   const match = rounds[rn-1]?.matches[mi];
   if(match && match.sh!==null && match.sa!==null){
-    const homeGoals = PLAYERS[parseInt(h)].players.reduce((s,p)=>{
+    const sumGoals = (ti) => PLAYERS[ti].players.reduce((s,p)=>{
       const key=p.replace(/[\s.\/]/g,'_');
-      const el=document.getElementById(`sg_${rn}_${mi}_${key}`);
+      const el=document.getElementById(`sg_${pfx}${rn}_${mi}_${key}`);
       return s+(parseInt(el?.value)||0);
     },0);
-    const awayGoals = PLAYERS[parseInt(a)].players.reduce((s,p)=>{
+    const sumOG = (ti) => PLAYERS[ti].players.reduce((s,p)=>{
       const key=p.replace(/[\s.\/]/g,'_');
-      const el=document.getElementById(`sg_${rn}_${mi}_${key}`);
+      const el=document.getElementById(`sog_${pfx}${rn}_${mi}_${key}`);
       return s+(parseInt(el?.value)||0);
     },0);
+    // home score = home goals + away own goals
+    const homeTotal = sumGoals(parseInt(h)) + sumOG(parseInt(a));
+    // away score = away goals + home own goals
+    const awayTotal = sumGoals(parseInt(a)) + sumOG(parseInt(h));
 
-    if(homeGoals !== match.sh){
-      showToast(`❌ גולים של ${T[parseInt(h)]}: ${homeGoals} ≠ תוצאה ${match.sh}`);
+    if(homeTotal !== match.sh){
+      showToast(`❌ גולים של ${T[parseInt(h)]}: ${homeTotal} ≠ תוצאה ${match.sh}`);
       return;
     }
-    if(awayGoals !== match.sa){
-      showToast(`❌ גולים של ${T[parseInt(a)]}: ${awayGoals} ≠ תוצאה ${match.sa}`);
+    if(awayTotal !== match.sa){
+      showToast(`❌ גולים של ${T[parseInt(a)]}: ${awayTotal} ≠ תוצאה ${match.sa}`);
       return;
     }
   }
@@ -1958,7 +2005,7 @@ async function saveScorers(rn,mi,h,a){
   if(mvpName) fbScores[`mvp_${mkey}`]=mvpName;
   else delete fbScores[`mvp_${mkey}`];
   localStorage.setItem('ll_sc',JSON.stringify(fbScores));
-  closeScorerPanel(`sp_${rn}_${mi}`);
+  closeScorerPanel(`sp_${pfx}${rn}_${mi}`);
   renderAll();
   showToast('סטטיסטיקות נשמרו ✅');
   try{await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});}catch(e){}
