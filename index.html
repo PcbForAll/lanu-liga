@@ -1294,16 +1294,45 @@ const BIN_ID='69f85eec36566621a821eeef';
 const API_KEY='$2a$10$cpplwlNg44//oUQaAmCene0RbB3QGEjsdJdjTcv50/tK9Xb9Ox0EW';
 const BIN_URL='https://api.jsonbin.io/v3/b/'+BIN_ID;
 
+// Merge: prefer LOCAL (most recent user input). Union of all keys.
+function mergeScores(remote, local){
+  const out = {...remote};
+  for(const k in local){ out[k] = local[k]; }
+  return out;
+}
+function loadLocal(){
+  try{return JSON.parse(localStorage.getItem('ll_sc')||'{}');}catch(e){return {};}
+}
+// Flag: was initial BIN load successful? Used to prevent destructive auto-PUTs when offline.
+let binLoadOk = false;
+
 async function initStorage(){
+  const local = loadLocal();
   try{
     const res=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    if(!res.ok) throw new Error('BIN load HTTP '+res.status);
     const data=await res.json();
-    fbScores=data.record.scores||{};
+    if(!data || !data.record) throw new Error('BIN response malformed');
+    const remote = data.record.scores || {};
+    // Merge: local wins for conflicts (covers offline edits not yet synced)
+    fbScores = mergeScores(remote, local);
+    binLoadOk = true;
+    // If local has saves missing from remote, push merged back to BIN
+    const localHasMore = Object.keys(local).some(k => !(k in remote));
+    if(localHasMore){
+      try{
+        const pr = await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
+        if(!pr.ok) console.warn('Re-sync PUT failed:', pr.status);
+      }catch(e){console.warn('Re-sync PUT error:', e);}
+    }
+    localStorage.setItem('ll_sc', JSON.stringify(fbScores));
     loadPlayersFromBin();
     loadRefsFromBin();
     applyScores();renderAll();setSync(true);
   }catch(e){
-    try{fbScores=JSON.parse(localStorage.getItem('ll_sc')||'{}')}catch(e2){fbScores={};}
+    console.warn('BIN load failed, using localStorage only:', e);
+    fbScores = local;
+    binLoadOk = false;  // CRITICAL: prevents loadRefsFromBin from PUTing local-only data over BIN
     loadPlayersFromBin();
     loadRefsFromBin();
     applyScores();renderAll();setSync(false);
@@ -1313,8 +1342,14 @@ async function syncFromBin(){
   if(scorerPanelOpen) return;
   try{
     const res=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
+    if(!res.ok) return;
     const data=await res.json();
-    fbScores=data.record.scores||{};
+    if(!data || !data.record) return;
+    const remote = data.record.scores || {};
+    // Merge with local — never wipe a save that didn't sync yet
+    const local = loadLocal();
+    fbScores = mergeScores(remote, local);
+    binLoadOk = true;
     applyScores();renderAll();
   }catch(e){}
 }
@@ -1338,9 +1373,13 @@ async function doSave(rn,h,a,sh,sa){
   localStorage.setItem('ll_sc',JSON.stringify(fbScores));
   applyScores();renderAll();showToast('שומר...');
   try{
-    await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
+    const res=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
+    if(!res.ok) throw new Error('PUT HTTP '+res.status);
     showToast(`${T[h]} ${sh}:${sa} ${T[a]} ✅`);
-  }catch(e){showToast('נשמר מקומית');}
+  }catch(e){
+    console.warn('Save to BIN failed:', e);
+    showToast('⚠️ נשמר רק מקומית — בעיית סנכרון');
+  }
 }
 
 function setSync(on){
@@ -1687,11 +1726,19 @@ function loadRefsFromBin(){
         delete fbScores[`ref_${rn}_${mi}`];
       }
     }
-    // שמור גרסה חדשה ב-bin בשקט
+    // שמור גרסה חדשה ב-bin בשקט — אך ורק אם הטעינה הראשונית מה-BIN הצליחה!
+    // בלי הבדיקה הזאת, אם BIN load נכשל, אנחנו דוחפים localStorage ריק חזרה לענן ודורסים הכל.
     fbScores['ref_version'] = REF_SCHEDULE_VERSION;
-    setTimeout(async()=>{
-      try{await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});}catch(e){}
-    }, 2000);
+    if(binLoadOk){
+      setTimeout(async()=>{
+        try{
+          const res=await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
+          if(!res.ok) console.warn('Ref version PUT failed:', res.status);
+        }catch(e){console.warn('Ref version PUT error:', e);}
+      }, 2000);
+    } else {
+      console.warn('Skipping ref-version PUT — BIN load was not successful (would risk overwriting cloud data)');
+    }
     return;
   }
   // גרסה עדכנית — טען רק שינויים ידניים של מנהל
