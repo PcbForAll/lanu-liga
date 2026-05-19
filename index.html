@@ -1053,6 +1053,10 @@ nav{
 <div class="admin-bar" id="adminBar">
   <span class="admin-lbl">מנהל</span>
   <button class="sbtn save" onclick="showPlayersEditor()" style="font-size:.7rem">👕 שחקנים</button>
+  <button class="sbtn save" onclick="exportBackup()" style="font-size:.7rem;background:linear-gradient(135deg,#2a7a2a,#3db83d)">💾 גיבוי</button>
+  <label class="sbtn save" style="font-size:.7rem;background:linear-gradient(135deg,#7a4a00,#c87800);cursor:pointer" title="ייבא גיבוי">
+    📥 ייבוא<input type="file" accept=".json" style="display:none" onchange="importBackup(event)">
+  </label>
   <button class="admin-out" onclick="logout()">יציאה</button>
 </div>
 
@@ -1102,15 +1106,27 @@ const SLOTS=[null,[0,2,1],[1,0,2],[1,0,2],[2,0,1],[0,1,2],[0,2,1],[1,0,2],[1,0,2
 const R1FIX=[[5,3,8,3],[0,2,6,5],[1,4,0,0]];
 function remap(i){if(i===4)return null;if(i===5)return 4;return i;}
 
+// ── עקיפת תאריכים חד-פעמית לפי מחזור (למשל חגים) ──
+// מפתח = מספר מחזור, ערך = { day: 'יום', date: 'DD/M/YYYY', short: 'DD/M' }
+const ROUND_DATE_OVERRIDES = {
+  4: { day: 'חמישי', date: '21/5/2026', short: '21/5' }
+};
+
 function dateStr(rn){
+  if(ROUND_DATE_OVERRIDES[rn]) return ROUND_DATE_OVERRIDES[rn].date;
   const ms=Date.UTC(2026,4,1)+(rn-1)*7*86400000;
   const d=new Date(ms);
   return d.getUTCDate()+'/'+(d.getUTCMonth()+1)+'/'+d.getUTCFullYear();
 }
 function shortDate(rn){
+  if(ROUND_DATE_OVERRIDES[rn]) return ROUND_DATE_OVERRIDES[rn].short;
   const ms=Date.UTC(2026,4,1)+(rn-1)*7*86400000;
   const d=new Date(ms);
   return d.getUTCDate()+'/'+(d.getUTCMonth()+1);
+}
+function dayName(rn){
+  if(ROUND_DATE_OVERRIDES[rn]) return ROUND_DATE_OVERRIDES[rn].day;
+  return 'שישי';
 }
 
 function getCurrentRound(){
@@ -1398,6 +1414,60 @@ function doLogin(){
 }
 function logout(){isAdmin=false;document.getElementById('adminBar').classList.remove('show');renderAll();}
 
+// ══ גיבוי וייבוא נתונים ══
+function exportBackup(){
+  const payload = {
+    version: 1,
+    exported: new Date().toLocaleString('he-IL'),
+    scores: fbScores
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const d = new Date();
+  a.download = `lanu-liga-backup-${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 גיבוי הורד בהצלחה');
+}
+
+async function importBackup(event){
+  const file = event.target.files[0];
+  if(!file){ return; }
+  try{
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    const scores = payload.scores || payload; // תמיכה בפורמט ישן וחדש
+    if(typeof scores !== 'object' || Array.isArray(scores)){
+      showToast('⚠️ קובץ גיבוי לא תקין');
+      return;
+    }
+    const count = Object.keys(scores).length;
+    if(!confirm(`ייבוא ${count} רשומות מ-${payload.exported || 'גיבוי'}?\nזה ידרוס את הנתונים הנוכחיים!`)){
+      event.target.value='';
+      return;
+    }
+    // שמור מקומית ולענן
+    fbScores = scores;
+    localStorage.setItem('ll_sc', JSON.stringify(fbScores));
+    applyScores(); renderAll();
+    showToast('שומר לענן...');
+    try{
+      const res = await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      showToast(`✅ יובאו ${count} רשומות — הענן עודכן`);
+    }catch(e){
+      console.warn('Import PUT failed:', e);
+      showToast('⚠️ יובא מקומית — בעיית סנכרון לענן');
+    }
+  }catch(e){
+    showToast('⚠️ שגיאה בקריאת הקובץ');
+    console.error('Import error:', e);
+  }
+  event.target.value=''; // איפוס input לשימוש חוזר
+}
+
 function goPage(n){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
@@ -1512,7 +1582,7 @@ async function delScore(rn,mi,h,a){
 }
 
 function roundHTML({rn,matches,bye},pfx=''){
-  let h=`<div class="rcard-head"><span class="rcard-num">מחזור ${rn}</span><span class="rcard-date">שישי, ${dateStr(rn)}</span></div>`;
+  let h=`<div class="rcard-head"><span class="rcard-num">מחזור ${rn}</span><span class="rcard-date">${dayName(rn)}, ${dateStr(rn)}</span></div>`;
   matches.forEach((m,mi)=>{h+=mrowHTML(rn,m,mi,pfx); h+=refRowHTML(rn,mi);});
   if(bye!==null)h+=`<div class="mrow bye-row"><span class="bye-txt">😴 חופש: <span class="bye-name">${T[bye]}</span></span></div>`;
   return h;
