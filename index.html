@@ -987,9 +987,22 @@ nav{
   </div>
   <div style="height:14px"></div>
   <div class="sync-row"><div class="sdot" id="sdot"></div><span id="slbl">בודק חיבור...</span></div>
-  <div class="sec-hdr">
-    <div class="sec-dot"></div>
-    <div><div class="sec-eye">תוצאות</div><div class="sec-title" id="homeRoundTitle">מחזור 1</div></div>
+  <div style="display:flex;align-items:center;margin:22px 14px 14px;gap:10px;">
+    <button id="homeNavPrev" onclick="homeNavStep(-1)" title="מחזור קודם" style="
+      flex-shrink:0;width:36px;height:36px;border-radius:50%;
+      border:1px solid var(--brd);background:var(--srf);
+      color:var(--txt2);font-size:1.3rem;line-height:1;
+      cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;">‹</button>
+    <div class="sec-dot" style="flex-shrink:0"></div>
+    <div style="flex:1">
+      <div class="sec-eye">תוצאות</div>
+      <div class="sec-title" id="homeRoundTitle">מחזור 1</div>
+    </div>
+    <button id="homeNavNext" onclick="homeNavStep(1)" title="מחזור הבא" style="
+      flex-shrink:0;width:36px;height:36px;border-radius:50%;
+      border:1px solid var(--brd);background:var(--srf);
+      color:var(--txt2);font-size:1.3rem;line-height:1;
+      cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;">›</button>
   </div>
   <div class="rcard" id="homeCard"></div>
 </div>
@@ -1127,6 +1140,17 @@ function shortDate(rn){
 function dayName(rn){
   if(ROUND_DATE_OVERRIDES[rn]) return ROUND_DATE_OVERRIDES[rn].day;
   return 'שישי';
+}
+
+let homeRoundView = -1; // -1 = אוטומטי לפי תאריך
+
+function homeNavStep(dir){
+  // dir: 1 = אחורה (קודם), -1 = קדימה (הבא)
+  if(homeRoundView === -1) homeRoundView = getCurrentRound();
+  homeRoundView = Math.max(0, Math.min(rounds.length-1, homeRoundView + dir));
+  renderAll();
+  // גלול לכרטיס
+  document.getElementById('homeCard').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function getCurrentRound(){
@@ -1590,11 +1614,18 @@ function roundHTML({rn,matches,bye},pfx=''){
 
 function renderAll(){
   if(scorerPanelOpen) return;
-  // Home — מחזור נוכחי לפי תאריך
-  const homeRoundIdx = getCurrentRound();
-  const homeRound = rounds[homeRoundIdx];
+  // Home — מחזור נוכחי לפי תאריך (או מה שהמשתמש בחר בחצים)
+  if(homeRoundView === -1) homeRoundView = getCurrentRound();
+  const homeRound = rounds[homeRoundView];
   document.getElementById('homeCard').innerHTML=roundHTML(homeRound,'home_');
   document.getElementById('homeRoundTitle').textContent=`מחזור ${homeRound.rn}`;
+  // הצג/הסתר חצים — › ימין = קודם (index יורד), ‹ שמאל = הבא (index עולה)
+  const prevBtn = document.getElementById('homeNavPrev');
+  const nextBtn = document.getElementById('homeNavNext');
+  const atFirst = homeRoundView <= 0;
+  const atLast  = homeRoundView >= rounds.length - 1;
+  if(prevBtn){ prevBtn.style.opacity = atFirst ? '0.2' : '1'; prevBtn.style.pointerEvents = atFirst ? 'none' : 'auto'; prevBtn.style.borderColor = atFirst ? 'var(--brd)' : 'var(--cyan)'; prevBtn.style.color = atFirst ? 'var(--txt2)' : 'var(--cyan)'; }
+  if(nextBtn){ nextBtn.style.opacity = atLast  ? '0.2' : '1'; nextBtn.style.pointerEvents = atLast  ? 'none' : 'auto'; nextBtn.style.borderColor = atLast  ? 'var(--brd)' : 'var(--cyan)'; nextBtn.style.color = atLast  ? 'var(--txt2)' : 'var(--cyan)'; }
   // Schedule
   const g=document.getElementById('schedGrid');g.innerHTML='';
   rounds.forEach(r=>{const c=document.createElement('div');c.className='rcard';c.innerHTML=roundHTML(r);g.appendChild(c);});
