@@ -786,6 +786,14 @@ const ROUND_DATE_OVERRIDES = {
   4: { day: 'חמישי', date: '21/5/2026', short: '21/5' }
 };
 
+// ── החלפת שעות בין סיבובים ──
+// מחזורים 1-6 כבר שוחקו ולא משתנים. ממחזור 7 השעות מתהפכות (16:00↔17:00)
+// כך שכל מפגש לא תקוע באותה שעה בכל הסיבובים. חושב כך שכל קבוצה יוצאת 6×16:00 ו-6×17:00.
+const TIME_SWAP_ROUNDS = new Set([7,8,9,10,11]);
+function isTimeSwapped(rn){ return TIME_SWAP_ROUNDS.has(rn); }
+const SEED_SCORES=JSON.parse("{\"ref_version\":3,\"ref_3_0\":{\"r1\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"r2\":\"\u05d5\u05d5\u05d1\u05d8\u05d5\",\"obs\":\"\u05d0\u05e8\u05d2\u05d4\"},\"ref_3_1\":{\"r1\":\"\u05d0\u05de\u05d9\u05e8\",\"r2\":\"\u05d2\u05e8\u05e9\u05d5\u05df\",\"obs\":\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\"},\"r1_3_4\":{\"sh\":3,\"sa\":8},\"sc_r1_3_4\":{\"\u05d0\u05dc\u05d9\u05d4\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d3\u05e0\u05d9\":{\"g\":0,\"rc\":1,\"yc\":0,\"og\":0},\"\u05d1\u05e0\u05d9\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05e8\u05d2\u05d4\":{\"g\":1,\"rc\":2,\"yc\":0,\"og\":0},\"\u05d2\u05e8\u05e9\u05d5\u05df\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05de\u05d5\u05dc\u05d0\u05d8\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e1\u05d5\u05dc\u05d9\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05dc\u05d9. \u05e1\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d1\u05dc\u05d9\u05d9\u05e0\u05da\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0}},\"sc_r1_0_2\":{\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d8\u05d3\u05dc\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05ea\u05d5\u05de\u05e8\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05d3\u05d9\u05e0\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d7\u05d9\u05d9\u05dd \u05e4\u05e7\u05d3\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e7\u05e1\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0}},\"mvp_r1_0_2\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"mvp_r1_3_4\":\"\u05d2\u05e8\u05e9\u05d5\u05df\",\"r2_2_3\":{\"sh\":8,\"sa\":3},\"sc_r2_2_3\":{\"\u05d0\u05dc\u05d9 .\u05de\":{\"g\":0,\"rc\":0,\"yc\":1,\"og\":0},\"\u05d9\u05e9\u05e8\u05d0\u05dc\":{\"g\":0,\"rc\":1,\"yc\":0,\"og\":0},\"\u05d9\u05d5\u05e1\u05d9 \u05de\u05e1\u05e8\u05e9\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e7\u05e1\u05d4\":{\"g\":4,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e9\u05e9\u05d5\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":1},\"\u05d5\u05d5\u05d1\u05d8\u05d5\":{\"g\":0,\"rc\":0,\"yc\":1,\"og\":0},\"\u05de\u05dc\u05e1\u05d4\":{\"g\":0,\"rc\":1,\"yc\":0,\"og\":0},\"\u05d0\u05e8\u05d2\u05d4\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0}},\"mvp_r2_2_3\":\"\u05e9\u05e9\u05d5\u05df\",\"r2_0_1\":{\"sh\":8,\"sa\":4},\"sc_r2_0_1\":{\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e1\u05d9\u05e1\u05d0\u05d9\u05d9\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05de\u05dc\u05d0\u05e7\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d8\u05d3\u05dc\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05ea\u05d5\u05de\u05e8\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05de\u05d9\u05e8\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d2\u05e1\u05de\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d3\u05e1\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0}},\"mvp_r2_0_1\":\"\u05d8\u05d3\u05dc\u05d4\",\"ref_2_0\":{\"r1\":\"\u05d2\u05e8\u05e9\u05d5\u05df\",\"r2\":\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\",\"obs\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\"},\"ref_2_1\":{\"r1\":\"\u05d0\u05e8\u05d2\u05d4\",\"r2\":\"\u05d5\u05d5\u05d1\u05d8\u05d5\",\"obs\":\"\u05d2\u05e8\u05e9\u05d5\u05df\"},\"ref_1_1\":{\"r1\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"r2\":\"\u05d0\u05d3\u05e0\u05d5\",\"obs\":\"\u05e9\u05e9\u05d5\u05df\"},\"r3_1_4\":{\"sh\":7,\"sa\":4},\"sc_r3_1_4\":{\"\u05d0\u05de\u05d9\u05e8\":{\"g\":4,\"rc\":0,\"yc\":0,\"og\":0},\"\u05de\u05dc\u05e7\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d2\u05e1\u05de\u05d4\":{\"g\":0,\"rc\":1,\"yc\":0,\"og\":0},\"\u05e0\u05ea\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d1\u05e7\u05dc\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e1\u05d5\u05dc\u05d9\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05dc\u05d9. \u05e1\":{\"g\":0,\"rc\":0,\"yc\":0,\"og\":1}},\"mvp_r3_1_4\":\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\",\"players_1\":{\"players\":[\"\u05d0\u05de\u05d9\u05e8\",\"\u05de\u05dc\u05e7\u05d4\",\"\u05d2\u05e1\u05de\u05d4\",\"\u05e0\u05ea\u05df\",\"\u05e8\u05d5\u05e0\u05d9\",\"\u05d0\u05d5\u05e8\u05d9\",\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\",\"\u05d3\u05e1\u05d4\",\"\u05d0\u05d1\u05d9\"],\"captain\":\"\u05d0\u05de\u05d9\u05e8\",\"coach\":\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\"},\"r3_0_3\":{\"sh\":7,\"sa\":6},\"sc_r3_0_3\":{\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05de\u05d1\u05d9\u05d9\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d8\u05d3\u05dc\u05d4\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05ea\u05d5\u05de\u05e8\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05de\u05dc\u05e1\u05d4\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05e8\u05d2\u05d4\":{\"g\":4,\"rc\":3,\"yc\":0,\"og\":0}},\"mvp_r3_0_3\":\"\u05d0\u05de\u05d1\u05d9\u05d9\u05d4\",\"ref_4_0\":{\"r1\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\",\"r2\":\"\u05d9\u05e9\u05e8\u05d0\u05dc\",\"obs\":\"\u05d0\u05d3\u05e0\u05d5\"},\"ref_4_1\":{\"r1\":\"\u05de\u05dc\u05e1\u05d4\",\"r2\":\"\u05d0\u05de\u05d9\u05e8\",\"obs\":\"\u05d5\u05d5\u05d1\u05d8\u05d5\"},\"ref_5_0\":{\"r1\":\"\u05e9\u05e9\u05d5\u05df\",\"r2\":\"\u05d0\u05e8\u05d2\u05d4\",\"obs\":\"\u05e7\u05e1\u05d4\"},\"ref_5_1\":{\"r1\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\",\"r2\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"obs\":\"\u05d2\u05e8\u05e9\u05d5\u05df\"},\"ref_7_0\":{\"r1\":\"\u05d0\u05de\u05d9\u05e8\",\"r2\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"obs\":\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\"},\"ref_7_1\":{\"r1\":\"\u05de\u05dc\u05e1\u05d4\",\"r2\":\"\u05d0\u05d3\u05e0\u05d5\",\"obs\":\"\u05d0\u05e8\u05d2\u05d4\"},\"ref_8_0\":{\"r1\":\"\u05d0\u05d3\u05e0\u05d5\",\"r2\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"obs\":\"\u05e7\u05e1\u05d4\"},\"ref_8_1\":{\"r1\":\"\u05d0\u05de\u05d9\u05e8\",\"r2\":\"\u05e9\u05e9\u05d5\u05df\",\"obs\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\"},\"ref_9_0\":{\"r1\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\",\"r2\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"obs\":\"\u05d2\u05e8\u05e9\u05d5\u05df\"},\"ref_12_0\":{\"r1\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\",\"r2\":\"\u05d2\u05e8\u05e9\u05d5\u05df\",\"obs\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\"},\"ref_13_0\":{\"r1\":\"\u05d0\u05d3\u05e0\u05d5\",\"r2\":\"\u05d5\u05d5\u05d1\u05d8\u05d5\",\"obs\":\"\u05de\u05dc\u05e1\u05d4\"},\"ref_13_1\":{\"r1\":\"\u05d0\u05de\u05d9\u05e8\",\"r2\":\"\u05e9\u05e9\u05d5\u05df\",\"obs\":\"\u05e7\u05e1\u05d4\"},\"r4_1_3\":{\"sh\":5,\"sa\":4},\"sc_r4_1_3\":{\"\u05d0\u05de\u05d9\u05e8\":{\"g\":2,\"rc\":1,\"yc\":0,\"og\":0},\"\u05d2\u05e1\u05de\u05d4\":{\"g\":0,\"rc\":2,\"yc\":0,\"og\":0},\"\u05e0\u05ea\u05df\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d9\u05d5\u05e1\u05d9 \u05d0\u05e1\u05e8\u05e1\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d1\u05e0\u05d9\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d5\u05d5\u05d1\u05d8\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05e8\u05d2\u05d4\":{\"g\":2,\"rc\":1,\"yc\":0,\"og\":0}},\"mvp_r4_1_3\":\"\u05d0\u05de\u05d9\u05e8\",\"r4_2_4\":{\"sh\":3,\"sa\":3},\"sc_r4_2_4\":{\"\u05d0\u05d3\u05d9\u05e0\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e7\u05e1\u05d4\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d2\u05e8\u05e9\u05d5\u05df\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05d1\u05d9 \u05d0\u05d3\u05e0\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d1\u05e7\u05dc\u05d4\":{\"g\":0,\"rc\":1,\"yc\":0,\"og\":0}},\"mvp_r4_2_4\":\"\u05d0\u05dc\u05d9 .\u05de\",\"r5_0_4\":{\"sh\":6,\"sa\":4},\"sc_r5_0_4\":{\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d0\u05de\u05d1\u05d9\u05d9\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d8\u05d3\u05dc\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d9\u05d5\u05e0\u05d9 \u05d9\u05dc\u05d0\u05d5\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d2\u05e8\u05e9\u05d5\u05df\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e1\u05d5\u05dc\u05d9\":{\"g\":2,\"rc\":0,\"yc\":0,\"og\":0}},\"mvp_r5_0_4\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"r5_1_2\":{\"sh\":4,\"sa\":3},\"sc_r5_1_2\":{\"\u05d0\u05de\u05d9\u05e8\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05d3\u05e1\u05d4\":{\"g\":3,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e7\u05e1\u05d4\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e9\u05e9\u05d5\u05df\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0},\"\u05e9\u05d9\":{\"g\":1,\"rc\":0,\"yc\":0,\"og\":0}},\"mvp_r5_1_2\":\"\u05d3\u05e1\u05d4\",\"ref_6_0\":{\"r1\":\"\u05d9\u05d5\u05e0\u05d9 \u05d5\u05d5\u05e8\u05e7\u05d5\",\"r2\":\"\u05d5\u05d5\u05d1\u05d8\u05d5\",\"obs\":\"\u05d2\u05e8\u05e9\u05d5\u05df\"},\"ref_6_1\":{\"r1\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"r2\":\"\u05e9\u05e9\u05d5\u05df\",\"obs\":\"\u05d9\u05e9\u05e8\u05d0\u05dc\"},\"r6_0_2\":{\"sh\":7,\"sa\":5},\"r6_3_4\":{\"sh\":3,\"sa\":4},\"players_0\":{\"players\":[\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"\u05d0\u05de\u05d1\u05d9\u05d9\u05d4\",\"\u05e1\u05d9\u05e1\u05d0\u05d9\u05d9\",\"\u05de\u05dc\u05d0\u05e7\",\"\u05d8\u05d3\u05dc\u05d4\",\"\u05d9\u05d5\u05e0\u05d9 \u05d9\u05dc\u05d0\u05d5\",\"\u05ea\u05d5\u05de\u05e8\",\"\u05e1\u05d5\u05dc\u05d5\u05de\u05d5\u05df \u05e2\u05d6\u05e8\u05d4\"],\"captain\":\"\u05d0\u05e8\u05e7\u05d9\u05d4\u05d5\u05df\",\"coach\":\"\u05d8\u05d3\u05dc\u05d4\"},\"players_3\":{\"players\":[\"\u05d2\u05d1\u05d9\",\"\u05d0\u05dc\u05d9\u05d4\u05d5\",\"\u05d3\u05e0\u05d9\",\"\u05d0\u05d5\u05e9\u05e8\u05d9\",\"\u05d1\u05e0\u05d9\",\"\u05d5\u05d5\u05d1\u05d8\u05d5\",\"\u05de\u05dc\u05e1\u05d4\",\"\u05d0\u05e8\u05d2\u05d4\"],\"captain\":\"\u05d5\u05d5\u05d1\u05d8\u05d5\",\"coach\":\"\u05d2\u05d1\u05d9\"}}");
+
+
 function dateStr(rn){
   if(ROUND_DATE_OVERRIDES[rn]) return ROUND_DATE_OVERRIDES[rn].date;
   const ms=Date.UTC(2026,4,1)+(rn-1)*7*86400000;
@@ -1009,34 +1017,38 @@ let binLoadOk = false;
 
 async function initStorage(){
   const local = loadLocal();
+  // הצג נתוני seed מיד — לפני שהענן נטען (אין מסך ריק)
+  fbScores = mergeScores({...SEED_SCORES}, local);
+  localStorage.setItem('ll_sc', JSON.stringify(fbScores));
+  loadPlayersFromBin(); loadRefsFromBin();
+  applyScores(); renderAll(); setSync(false);
   try{
     const res=await fetch(BIN_URL+'/latest',{headers:{'X-Master-Key':API_KEY}});
     if(!res.ok) throw new Error('BIN load HTTP '+res.status);
     const data=await res.json();
     if(!data || !data.record) throw new Error('BIN response malformed');
     const remote = data.record.scores || {};
-    // Merge: local wins for conflicts (covers offline edits not yet synced)
-    fbScores = mergeScores(remote, local);
+    // מיזוג: seed כבסיס, ענן דורס (עדכני יותר), local מנצח תמיד
+    fbScores = mergeScores(mergeScores({...SEED_SCORES}, remote), local);
     binLoadOk = true;
-    // If local has saves missing from remote, push merged back to BIN
-    const localHasMore = Object.keys(local).some(k => !(k in remote));
-    if(localHasMore){
+    localStorage.setItem('ll_sc', JSON.stringify(fbScores));
+    // אם יש נתונים ב-seed/local שחסרים בענן — דחוף לענן (מאכלס bin ריק אוטומטית)
+    const combinedHasMore = Object.keys(fbScores).some(k => !(k in remote));
+    if(combinedHasMore){
       try{
         const pr = await fetch(BIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},body:JSON.stringify({scores:fbScores})});
         if(!pr.ok) console.warn('Re-sync PUT failed:', pr.status);
+        else console.log('Seed/local pushed to BIN successfully');
       }catch(e){console.warn('Re-sync PUT error:', e);}
     }
-    localStorage.setItem('ll_sc', JSON.stringify(fbScores));
-    loadPlayersFromBin();
-    loadRefsFromBin();
-    applyScores();renderAll();setSync(true);
+    loadPlayersFromBin(); loadRefsFromBin();
+    applyScores(); renderAll(); setSync(true);
   }catch(e){
-    console.warn('BIN load failed, using localStorage only:', e);
-    fbScores = local;
-    binLoadOk = false;  // CRITICAL: prevents loadRefsFromBin from PUTing local-only data over BIN
-    loadPlayersFromBin();
-    loadRefsFromBin();
-    applyScores();renderAll();setSync(false);
+    console.warn('BIN load failed, using seed+local:', e);
+    fbScores = mergeScores({...SEED_SCORES}, local);
+    binLoadOk = false;
+    loadPlayersFromBin(); loadRefsFromBin();
+    applyScores(); renderAll(); setSync(false);
   }
 }
 async function syncFromBin(showFeedback){
@@ -1176,7 +1188,8 @@ function goPage(n){
   if(n==='teams') renderTeams();
 }
 
-function mrowHTML(rn,m,mi,pfx=''){
+function mrowHTML(rn,m,mi,pfx='',swap=false){
+  const dslot = swap ? (m.slot===0?1:0) : m.slot;  // שעה מוצגת (מתהפכת בסיבובים מסוימים)
   const has=m.sh!==null&&m.sa!==null;
   const canEdit=isAdmin&&!m.fixed;
   let sc_html;
@@ -1250,8 +1263,8 @@ function mrowHTML(rn,m,mi,pfx=''){
     </div>` : '';
   
   const scorerBtnRow=(isAdmin&&has)?`<div style="text-align:center;padding:6px 14px;border-top:1px solid var(--brd)"><button class="scorer-btn" onclick="toggleScorerPanel('${pfx}',${rn},${mi},${m.h},${m.a})">⚽ ${hasSc?'ערוך סטטיסטיקות':'הזן סטטיסטיקות'}</button></div>`:'';
-  return `<div class="mrow s${m.slot}" id="mrow_${rn}_${mi}">
-    <span class="tpill">${m.slot===0?'16:00':'17:00'}</span>
+  return `<div class="mrow s${dslot}" id="mrow_${rn}_${mi}">
+    <span class="tpill">${dslot===0?'16:00':'17:00'}</span>
     <span class="t-home">${T[m.h]}</span>
     ${sc_html}
     <span class="t-away">${T[m.a]}</span>
@@ -1280,7 +1293,11 @@ async function delScore(rn,mi,h,a){
 
 function roundHTML({rn,matches,bye},pfx=''){
   let h=`<div class="rcard-head"><span class="rcard-num">מחזור ${rn}</span><span class="rcard-date">${dayName(rn)}, ${dateStr(rn)}</span></div>`;
-  matches.forEach((m,mi)=>{h+=mrowHTML(rn,m,mi,pfx); h+=refRowHTML(rn,mi);});
+  const swap = isTimeSwapped(rn);
+  // mi נשאר צמוד לזוג הקבוצות (לשופטים/MVP). בסיבוב מוחלף — רק סדר התצוגה והשעה מתהפכים.
+  let entries = matches.map((m,mi)=>({m,mi}));
+  if(swap) entries.reverse();
+  entries.forEach(({m,mi})=>{h+=mrowHTML(rn,m,mi,pfx,swap); h+=refRowHTML(rn,mi);});
   if(bye!==null)h+=`<div class="mrow bye-row"><span class="bye-txt">😴 חופש: <span class="bye-name">${T[bye]}</span></span></div>`;
   return h;
 }
